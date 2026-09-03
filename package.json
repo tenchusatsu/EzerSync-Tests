@@ -1,0 +1,19 @@
+{
+  "name": "family-calendar-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright end-to-end automation suite for Family Calendar & Sync Hub",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "cleanup": "cmd /c cleanup_tests.bat"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^24.13.3",
+    "typescript": "~6.0.2"
+  }
+}
