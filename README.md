@@ -1,4 +1,4 @@
-﻿# 🎭 EzerSync E2E Test Suite (Playwright)
+# 🎭 EzerSync E2E Test Suite (Playwright)
 
 Automated end-to-end regression and integration test suite for the **EzerSync Family Calendar & Sync Hub**.
 
@@ -45,5 +45,18 @@ npm run report
 | **`tests/04_meals_groceries.spec.ts`** | **Meal Planning & Groceries** | Recipe planning, 1-click ingredient push to groceries, auto-categorization (Produce, Meat, Dairy, Pantry), staging multi-item additions, checkoff & clear completed. |
 | **`tests/05_settings.spec.ts`** | **Household Settings & Members** | Light/Dark mode, color palette themes, adding family members, duplicate member name rejection, member removal. |
 | **`tests/06_cookbook_recipes.spec.ts`** | **Cookbook & Recipe Hub** | AI Recipe Search, custom recipe creation/edit, share code generation, recipe deletion with custom modal. |
+| **`tests/07_negative_scenarios.spec.ts`** | **Negative & Error Handling** | Invalid PIN rejection, non-existent hub, duplicate registration rejection, invalid recovery code, bogus recipe import code, empty form validation. |
+| **`tests/08_integrations_e2e.spec.ts`** | **E2E Multi-Tab Integrations** | Direct meal-to-grocery push flow, bulk grocery select/clear, calendar member filter isolation, theme & mode persistence. |
+| **`tests/09_mobile_responsive.spec.ts`** | **Mobile Touch UI & Viewports** | Mobile 5-slot bottom bar with centered Home on iPhone 12, "⋯ More" overflow popup navigation, direct tab switching. |
 | **`tests/dashboard.spec.ts`** | **Dashboard Smoke Tests** | End-to-end sanity tests across all core modules. |
 | **`tests/overflow.spec.ts`** | **Responsive & Layout Constraints** | Viewport stability, mobile portrait/landscape tabs, modal viewport limits. |
+
+---
+
+## 🧹 Test Cleanup Utility
+
+A cleanup script is included to automatically purge dummy test households created during testing:
+
+```bash
+npm run cleanup
+```
