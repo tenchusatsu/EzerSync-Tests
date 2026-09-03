@@ -80,18 +80,29 @@ test.describe('Dashboard Features', () => {
   test('Meals Flow: Plan a dinner', async ({ page }) => {
     await setupDummyHousehold(page);
 
-    // Click + Plan Tonight's Dinner
-    await page.locator('p:has-text("+ Plan Tonight\'s Dinner")').locator('visible=true').first().click({ force: true });
+    // Click + Plan Tonight's Dinner (in v1.1.3 opens Cookbook directly in planning mode)
+    const planDinnerBtn = page.locator('p:has-text("+ Plan Tonight\'s Dinner")').or(page.locator('text="+ Plan Dinner"')).locator('visible=true').first();
+    await planDinnerBtn.click({ force: true });
+    await page.waitForTimeout(500);
     
-    // Fill meal details
-    await page.waitForSelector('input[placeholder*="Sinigang na Baboy"]');
-    await page.fill('input[placeholder*="Sinigang na Baboy"]', 'Playwright Dinner');
-    
-    // Save Meal
-    await page.locator('button:has-text("Save Meal Plan")').locator('visible=true').first().click({ force: true });
-
-    // Verify it appears
-    await expect(page.getByText('Playwright Dinner').locator('visible=true').first()).toBeAttached();
+    // Pick a recipe from the open Cookbook modal
+    const cookbookDialog = page.locator('.fixed').filter({ hasText: 'Family Cookbook' });
+    const recipeCard = cookbookDialog.locator('h4').filter({ visible: true }).first();
+    if (await recipeCard.isVisible()) {
+      const title = (await recipeCard.innerText()).trim();
+      await recipeCard.click({ force: true });
+      await page.waitForTimeout(500);
+      await expect(page.getByText(title).locator('visible=true').first()).toBeAttached();
+    } else {
+      // Create custom recipe in planning mode
+      await cookbookDialog.locator('button:has-text("+ Add")').first().click({ force: true });
+      await page.locator('button:has-text("Create Custom Recipe")').click();
+      await page.waitForSelector('input[placeholder*="Grandma\'s Lasagna"]');
+      await page.fill('input[placeholder*="Grandma\'s Lasagna"]', 'Playwright Dinner');
+      await page.locator('button:has-text("Save Recipe")').click();
+      await page.waitForTimeout(500);
+      await expect(page.getByText('Playwright Dinner').locator('visible=true').first()).toBeAttached();
+    }
   });
 
   test('Settings Flow: Update household name', async ({ page }) => {

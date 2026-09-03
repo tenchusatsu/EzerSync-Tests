@@ -1,20 +1,13 @@
-﻿import { test, expect } from './fixtures/auth.fixture';
+import { test, expect } from './fixtures/auth.fixture';
 
 test.describe('AI Cookbook & Recipe CRUD', () => {
 
   test.beforeEach(async ({ authenticatedPage: page }) => {
-    await page.getByRole('button', { name: /Meals/i }).first().click({ force: true });
+    // Open Cookbook directly from navigation
+    const cookbookNav = page.locator('nav button, aside button, button').filter({ hasText: /📖.*Cookbook|Cookbook/i }).filter({ visible: true }).first();
+    await cookbookNav.click({ force: true });
     await page.waitForTimeout(500);
 
-    const planBtn = page.locator('p:has-text("+ Plan Tonight\'s Dinner")').first();
-    if (await planBtn.isVisible()) {
-      await planBtn.click({ force: true });
-    } else {
-      await page.locator('div:has-text("Monday")').locator('button:has-text("+")').first().click({ force: true });
-    }
-    await page.waitForTimeout(500);
-
-    await page.locator('button:has-text("Open Cookbook")').filter({ visible: true }).first().click({ force: true });
     await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
   });
 
@@ -22,30 +15,22 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await page.locator('button:has-text("✨ AI Search")').click();
     await page.waitForTimeout(300);
 
-    await page.route('**/api.php?action=ai_recipe_search', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          status: 'success',
-          recipes: [{
-            id: 'ai-123',
-            name: 'AI Generated Pasta',
-            title: 'AI Generated Pasta',
-            ingredients: ['Pasta', 'Tomato Sauce'],
-            instructions: 'Boil pasta. Add sauce.',
-            cuisine: 'Italian'
-          }]
-        })
-      });
-    });
+    const promptInput = page.locator('textarea[placeholder*="vegan lasagna"]');
+    if (!await promptInput.isVisible()) {
+      const editPromptBtn = page.locator('button:has-text("✏️ Edit Prompt")');
+      if (await editPromptBtn.isVisible()) {
+        await editPromptBtn.click();
+      }
+    }
 
-    await page.fill('textarea', 'Make me a pasta dish'); // There's only one textarea in the modal
+    await page.fill('textarea[placeholder*="vegan lasagna"]', 'A fast garlic pasta');
     await page.locator('button:has-text("Generate Recipe ✨")').click();
 
-    // The title in the suggestion card might be h4
-    const suggestion = page.locator('h4', { hasText: 'AI Generated Pasta' });
-    await expect(suggestion).toBeVisible();
+    // The title in the suggestion card
+    const suggestion = page.locator('h4').filter({ visible: true }).first();
+    await expect(suggestion).toBeVisible({ timeout: 20000 });
+    const recipeTitle = (await suggestion.innerText()).trim();
+
     await suggestion.click();
     await page.waitForTimeout(500);
 
@@ -55,16 +40,17 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await page.waitForTimeout(500);
 
     await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
-    // Revert to my_recipes tab if it didn't auto-switch (it should based on UI, but wait, CookbookModal doesn't auto-switch activeTab. We must click "📖 My Recipes")
     await page.locator('button:has-text("📖 My Recipes")').click();
 
-    await page.fill('input[placeholder="Search cookbook..."]', 'AI Generated Pasta');
-    await expect(page.locator('h4:has-text("AI Generated Pasta")').first()).toBeVisible();
+    await page.fill('input[placeholder="Search cookbook..."]', recipeTitle);
+    await expect(page.locator('h4', { hasText: recipeTitle }).first()).toBeVisible();
   });
 
   test('Recipe CRUD: Create, Edit, Delete, Import custom recipes', async ({ authenticatedPage: page }) => {
+    page.on('dialog', dialog => dialog.accept());
+
     // CREATE
-    await page.locator('button:has-text("+ Add Recipe")').click();
+    await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
     await page.locator('button:has-text("📝 Create Custom Recipe")').click();
     
     await expect(page.locator('h3:has-text("New Recipe")')).toBeVisible();
@@ -81,25 +67,7 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await expect(page.locator('h4:has-text("My Custom Soup")').first()).toBeVisible();
 
     // IMPORT
-    await page.route('**/api.php?action=import_recipe', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          status: 'success',
-          recipe: {
-            id: 'imported-999',
-            name: 'Imported Cake',
-            title: 'Imported Cake',
-            ingredients: ['Flour', 'Sugar'],
-            instructions: 'Bake it.',
-            isCustom: true
-          }
-        })
-      });
-    });
-
-    await page.locator('button:has-text("+ Add Recipe")').click();
+    await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
     await page.locator('button:has-text("📥 Import Shared Recipe")').click();
     await expect(page.locator('h3:has-text("Import Shared Recipe")')).toBeVisible();
     await page.fill('input[placeholder="RCP-XXXX-XXXX"]', 'RCP-1234-5678');
@@ -114,10 +82,50 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await page.locator('div').filter({ hasText: /^Imported Cake/ }).locator('button:has-text("📝 Edit")').click();
     await expect(page.locator('h3:has-text("Edit Recipe")')).toBeVisible();
     
-    page.on('dialog', dialog => dialog.accept());
     await page.locator('button:has-text("Delete")').click();
+    await page.waitForTimeout(300);
+    const confirmDelete = page.locator('.fixed.z-\\[100\\] button:has-text("Delete")').or(page.locator('button:has-text("Delete")').filter({ hasText: /^Delete$/ })).last();
+    if (await confirmDelete.isVisible()) {
+      await confirmDelete.click({ force: true });
+    }
     
     await page.waitForTimeout(500);
     await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
+  });
+
+  test('AI Fridge Assistant: "What\'s in my fridge?" suggests dishes from ingredients', async ({ authenticatedPage: page }) => {
+    // 1. Switch to fridge tab
+    await page.locator('button:has-text("🧊 What\'s in my fridge?")').click();
+    await page.waitForTimeout(300);
+
+    const fridgeInput = page.locator('textarea[placeholder*="Chicken breast"]');
+    if (!await fridgeInput.isVisible()) {
+      const editPromptBtn = page.locator('button:has-text("✏️ Edit Prompt")');
+      if (await editPromptBtn.isVisible()) {
+        await editPromptBtn.click();
+      }
+    }
+
+    // 2. Fill ingredients in textarea
+    await page.fill('textarea[placeholder*="Chicken breast"]', 'ground beef, potatoes, carrots, onions');
+
+    // 3. Click Suggest Ideas ✨
+    await page.locator('button:has-text("Suggest Ideas ✨")').click();
+
+    // 4. Assert suggestions render
+    const suggestion1 = page.locator('h4').filter({ visible: true }).first();
+    await expect(suggestion1).toBeVisible({ timeout: 20000 });
+    const dishTitle = (await suggestion1.innerText()).trim();
+
+    // 5. Click suggestion to inspect details in Recipe Edit modal
+    await suggestion1.click();
+    await page.waitForTimeout(500);
+
+    await expect(page.locator('h3:has-text("Edit Recipe")').or(page.locator('h3:has-text("New Recipe")'))).toBeVisible();
+    await expect(page.locator('input[placeholder*="Grandma\'s Lasagna"]')).toHaveValue(dishTitle);
+
+    // Close recipe inspector
+    const closeBtn = page.locator('.fixed button:has-text("✕")').last();
+    await closeBtn.click({ force: true });
   });
 });

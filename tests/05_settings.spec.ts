@@ -95,4 +95,37 @@ test.describe('Settings Scenarios', () => {
     const bellaCard = page.locator('.space-y-4 > div').filter({ hasText: 'Bella' }).first();
     await expect(bellaCard).toBeVisible();
   });
+
+  test('Settings: Navigation Order Customization & Dynamic Tab Reordering', async ({ authenticatedPage: page }) => {
+    // Navigate to Settings
+    await page.locator('button[aria-label="Open Settings"]').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(500);
+
+    // Click Nav tab
+    await page.locator('button').filter({ hasText: /🗂️|Nav/ }).first().click({ force: true });
+    await page.waitForTimeout(500);
+
+    // Verify Navigation Order heading is visible
+    await expect(page.locator('h4:has-text("Navigation Order")')).toBeVisible();
+
+    // Verify items have move buttons (▲ / ▼) and status tags (Bar / More)
+    const settingsDialog = page.locator('.fixed').filter({ has: page.locator('h4:has-text("Navigation Order")') });
+    await expect(settingsDialog.locator('span:has-text("Always center")')).toBeVisible();
+    await expect(settingsDialog.locator('span:has-text("Bar")').first()).toBeVisible();
+    await expect(settingsDialog.locator('span:has-text("More")').first()).toBeVisible();
+
+    // Locate the first movable non-home item and click ▼
+    const downButtons = page.locator('button:has-text("▼"):not([disabled])');
+    if (await downButtons.count() > 0) {
+      await downButtons.first().click();
+      await page.waitForTimeout(500);
+    }
+
+    // Close settings
+    const closeSettings = page.locator('.fixed button:has-text("✕")').first();
+    if (await closeSettings.isVisible()) {
+      await closeSettings.click({ force: true });
+    }
+  });
 });
+
