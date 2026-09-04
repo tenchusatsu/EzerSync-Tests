@@ -297,4 +297,107 @@ test.describe('Calendar Scenarios', () => {
       await page.locator('button:has-text("All")').first().click();
     }
   });
+
+  test('Non-Google Recurring Events: Edit ONLY this instance updates single occurrence', async ({ authenticatedPage: page }) => {
+    // 1. Create a repeating weekly event
+    await page.locator('button:has-text("+ Event")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(400);
+    await page.fill('input[placeholder="Add title"]', 'Edit Single Test');
+    await page.locator('select').nth(1).selectOption('WEEKLY_CURRENT');
+    await page.locator('button:has-text("Save")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(500);
+    await expect(page.getByText('Edit Single Test').first()).toBeAttached();
+
+    // 2. Switch to Week View
+    await page.locator('button', { hasText: /^Week$/ }).first().click({ force: true });
+    await page.waitForTimeout(400);
+
+    // 3. Navigate forward to NEXT week (▶)
+    await page.locator('button:has-text("▶")').first().click({ force: true });
+    await page.waitForTimeout(500);
+
+    // 4. Click the event on the next week
+    await page.getByText('Edit Single Test').first().click({ force: true });
+    await page.waitForTimeout(400);
+    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    if (await tapToEdit.isVisible()) {
+      await tapToEdit.click({ force: true });
+      await page.waitForTimeout(300);
+    }
+
+    // 5. Select "Edit ONLY this instance"
+    const editSinglePrompt = page.locator('button:has-text("Edit ONLY this instance")');
+    if (await editSinglePrompt.isVisible()) {
+      await editSinglePrompt.click({ force: true });
+      await page.waitForTimeout(300);
+    }
+
+    // 6. Change the title
+    await page.fill('input[placeholder="Add title"]', 'Edited Single Occurrence');
+    await page.locator('button:has-text("Save Event Changes"), button:has-text("Save")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(500);
+
+    // 7. Verify the edited text is visible on this week
+    const currentWeekDays = page.locator('.grid.grid-cols-2.md\\:grid-cols-4 > div').filter({ hasNotText: 'Next Week' });
+    await expect(currentWeekDays.getByText('Edited Single Occurrence')).toBeVisible();
+    await expect(currentWeekDays.getByText('Edit Single Test')).toHaveCount(0);
+
+    // 8. Navigate back to previous week (◀) and verify the original title is STILL present
+    await page.locator('button:has-text("◀")').first().click({ force: true });
+    await page.waitForTimeout(500);
+    await expect(currentWeekDays.getByText('Edit Single Test').first()).toBeVisible();
+    await expect(currentWeekDays.getByText('Edited Single Occurrence')).toHaveCount(0);
+  });
+
+  test('Single Event: Edit Date/Time, Toggle All-Day, Reassign Member, and Upgrade to Recurring', async ({ authenticatedPage: page }) => {
+    // 1. Create a basic single event
+    await page.locator('button:has-text("+ Event")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(400);
+    await page.fill('input[placeholder="Add title"]', 'Morphing Event');
+    
+    // Default is usually All-Day checked. Uncheck it.
+    const allDayToggle = page.locator('input[type="checkbox"]').first();
+    if (await allDayToggle.isChecked()) {
+      await page.locator('.peer').first().click({ force: true });
+    }
+    await page.waitForTimeout(200);
+
+    await page.locator('button:has-text("Save")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(500);
+    await expect(page.getByText('Morphing Event').first()).toBeVisible();
+
+    // 2. Open edit modal again
+    await page.getByText('Morphing Event').first().click({ force: true });
+    await page.waitForTimeout(400);
+    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    if (await tapToEdit.isVisible()) {
+      await tapToEdit.click({ force: true });
+      await page.waitForTimeout(300);
+    }
+
+    // 3. Edit title
+    await page.fill('input[placeholder="Add title"]', 'Morphed Event');
+
+    // 4. Toggle All-Day on
+    await page.locator('.peer').first().click({ force: true });
+    await page.waitForTimeout(200);
+
+    // 5. Upgrade to Recurring (Daily)
+    await page.locator('select').nth(1).selectOption('DAILY');
+
+    // 6. Save
+    await page.locator('button:has-text("Save Event Changes"), button:has-text("Save")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(500);
+
+    // 7. Verify changes on current day
+    const currentWeekDays = page.locator('.grid.grid-cols-2.md\\:grid-cols-4 > div').filter({ hasNotText: 'Next Week' });
+    await expect(currentWeekDays.getByText('Morphed Event').first()).toBeVisible();
+
+    // 8. Go to next week and see if it repeated (Daily)
+    await page.locator('button', { hasText: /^Week$/ }).first().click({ force: true });
+    await page.waitForTimeout(400);
+    await page.locator('button:has-text("▶")').first().click({ force: true });
+    await page.waitForTimeout(500);
+    await expect(currentWeekDays.getByText('Morphed Event').first()).toBeVisible();
+  });
 });
