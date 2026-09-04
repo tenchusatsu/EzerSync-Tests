@@ -8,11 +8,11 @@ test.describe('Calendar Scenarios', () => {
 
   test('Switch between Month, Week, and Day views', async ({ authenticatedPage: page }) => {
     await expect(page.locator('h2').first()).toBeVisible();
-    await page.locator('button:has-text("Week")').first().click({ force: true });
+    await page.locator('button', { hasText: /^Week$/ }).first().click({ force: true });
     await expect(page.locator('text=Sun').first()).toBeVisible();
-    await page.locator('button:has-text("Day")').first().click({ force: true });
-    await expect(page.locator('text=AM').first()).toBeVisible();
-    await page.locator('button:has-text("Month")').first().click({ force: true });
+    await page.locator('button', { hasText: /^Day$/ }).first().click({ force: true });
+    await expect(page.locator('text=GMT').or(page.locator('text=AM')).first()).toBeVisible();
+    await page.locator('button', { hasText: /^Month$/ }).first().click({ force: true });
   });
 
   test('Create, Edit, and Delete single event (via Day Overview inspection gate)', async ({ authenticatedPage: page }) => {

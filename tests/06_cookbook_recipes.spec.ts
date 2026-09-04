@@ -24,6 +24,30 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     }
 
     await page.fill('textarea[placeholder*="vegan lasagna"]', 'A fast garlic pasta');
+
+    await page.route('**/api.php?action=ai_recipe_search', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'success',
+          recipes: [
+            {
+              title: 'Fast Garlic Pasta',
+              description: 'Quick savory pasta with toasted garlic.',
+              category: 'Dinner',
+              cuisine: 'Italian',
+              prepTimeMinutes: 5,
+              cookTimeMinutes: 10,
+              servings: 2,
+              ingredients: ['spaghetti', 'garlic', 'olive oil'],
+              instructions: 'Boil pasta. Sauté garlic in olive oil. Toss together.'
+            }
+          ]
+        })
+      });
+    });
+
     await page.locator('button:has-text("Generate Recipe ✨")').click();
 
     // The title in the suggestion card
@@ -108,6 +132,29 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
 
     // 2. Fill ingredients in textarea
     await page.fill('textarea[placeholder*="Chicken breast"]', 'ground beef, potatoes, carrots, onions');
+
+    await page.route('**/api.php?action=ai_fridge_suggest', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'success',
+          recipes: [
+            {
+              title: 'Hearty Beef & Potato Hash',
+              description: 'Quick skillet meal from fridge staples.',
+              category: 'Dinner',
+              cuisine: 'American',
+              prepTimeMinutes: 10,
+              cookTimeMinutes: 20,
+              servings: 3,
+              ingredients: ['ground beef', 'potatoes', 'carrots', 'onions'],
+              instructions: 'Brown the beef. Dice and cook potatoes and carrots. Combine.'
+            }
+          ]
+        })
+      });
+    });
 
     // 3. Click Suggest Ideas ✨
     await page.locator('button:has-text("Suggest Ideas ✨")').click();

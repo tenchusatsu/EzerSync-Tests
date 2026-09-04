@@ -1,45 +1,67 @@
 import { test as base, Page, expect } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 
 type AuthFixtures = {
   authenticatedPage: Page;
   householdId: string;
 };
 
+// Ensure devtest is always initialized from base snapshot
+export function ensureDevtestReady() {
+  const dataDir = 'c:/Users/janlu/Desktop/family_calendar_data';
+  const snapshot = path.join(dataDir, 'devtest.json.base_snapshot');
+  const target = path.join(dataDir, 'devtest.json');
+  if (fs.existsSync(snapshot)) {
+    fs.copyFileSync(snapshot, target);
+  }
+}
+
 export const test = base.extend<AuthFixtures>({
   authenticatedPage: async ({ page }, use) => {
+    ensureDevtestReady();
     await page.goto('/');
-    if (await page.locator('text="Create a new hub"').isVisible({ timeout: 3000 }).catch(() => false)) {
-      await page.click('text="Create a new hub"');
-      await page.waitForSelector('input[placeholder="e.g. EZER-SYNC-2026"]');
 
-      const uniqueHub = 'regression' + Date.now() + Math.floor(Math.random() * 10000);
-      await page.fill('input[placeholder="e.g. EZER-SYNC-2026"]', 'EZER-SYNC-2026');
-      await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
-      await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
-      await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
+    // Check if already authenticated
+    if (await page.locator('button[aria-label="Open Settings"]').isVisible({ timeout: 1500 }).catch(() => false)) {
+      await use(page);
+      return;
+    }
 
-      // v1.1.4 Zero-Knowledge & Security fields
-      const emailInput = page.locator('input[placeholder="admin@example.com"]');
-      if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await emailInput.fill('admin@test.com');
-      }
+    // If on registration view, switch back to login
+    const backToLoginBtn = page.locator('button:has-text("Already have a household? Log in")')
+      .or(page.locator('button:has-text("Back to Login")'))
+      .first();
+    if (await backToLoginBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await backToLoginBtn.click();
+    }
 
-      const masterPassInput = page.locator('input[placeholder*="Min 8 chars"]');
-      if (await masterPassInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await masterPassInput.fill('EzerSync#2026');
-      }
-
+    // Log into devtest using PIN 1234
+    const hubInput = page.locator('input[placeholder*="smithfamily"]');
+    if (await hubInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await hubInput.fill('devtest');
       const pinInput = page.locator('input[maxLength="8"]');
       await pinInput.fill('1234');
-      
-      await page.click('button:has-text("Create Household")', { force: true });
-      await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
-      await page.waitForTimeout(1000);
+      await page.click('button:has-text("Access Dashboard")');
+
+      // If legacy upgrade modal appears, dismiss with Remind Me Later
+      const remindLaterBtn = page.locator('button:has-text("Remind Me Later")');
+      try {
+        await remindLaterBtn.waitFor({ state: 'visible', timeout: 3000 });
+        await remindLaterBtn.click({ force: true });
+        await remindLaterBtn.waitFor({ state: 'hidden', timeout: 3000 });
+      } catch (e) {
+        // Modal may not appear if already encrypted or dismissed
+      }
+
+      await expect(page.locator('button[aria-label="Open Settings"]')).toBeVisible({ timeout: 10000 });
     }
+
     await use(page);
   },
   householdId: async ({}, use) => {
-    await use('regression' + Date.now() + Math.floor(Math.random() * 10000));
+    await use('devtest');
   }
 });
+
 export { expect } from '@playwright/test';

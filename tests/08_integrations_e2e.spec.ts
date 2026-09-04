@@ -127,8 +127,8 @@ test.describe('End-to-End User Journeys & Multi-Tab Integrations', () => {
     await expect(page.getByText('Admin Meeting').first()).toBeVisible();
     await expect(page.getByText('Jane Soccer').first()).toBeVisible();
 
-    // 5. Click Admin Test filter pill
-    const adminFilterPill = page.locator('button').filter({ hasText: /^Admin Test/ }).first();
+    // 5. Click first member filter pill (Dev Admin or Admin Test)
+    const adminFilterPill = page.locator('button').filter({ hasText: /^Dev Admin|^Admin Test/ }).first();
     await adminFilterPill.click({ force: true });
     await page.waitForTimeout(300);
 

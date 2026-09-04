@@ -46,7 +46,7 @@ test.describe('Meals & Groceries: AI & Category Fixes', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ consolidated: ['3 onions'] })
+        body: JSON.stringify({ status: 'success', items: ['3 onions'] })
       });
     });
 

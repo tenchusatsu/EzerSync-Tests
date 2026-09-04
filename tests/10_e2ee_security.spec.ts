@@ -1,4 +1,15 @@
 import { test, expect } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
+
+function restoreDevtestSnapshot() {
+  const dataDir = 'c:/Users/janlu/Desktop/family_calendar_data';
+  const snapshot = path.join(dataDir, 'devtest.json.base_snapshot');
+  const target = path.join(dataDir, 'devtest.json');
+  if (fs.existsSync(snapshot)) {
+    fs.copyFileSync(snapshot, target);
+  }
+}
 
 test.describe('v1.1.4 Zero-Knowledge E2EE, Master Password & Security Boundary Suite', () => {
 
@@ -301,6 +312,79 @@ test.describe('v1.1.4 Zero-Knowledge E2EE, Master Password & Security Boundary S
 
     // Verify back on Login form
     await expect(page.locator('button:has-text("Access Dashboard")')).toBeVisible();
+  });
+
+  // =========================================================================
+  // 5. LEGACY DEVTEST UPGRADE & SNAPSHOT RECOVERY TESTS
+  // =========================================================================
+
+  test('Legacy Migration Gate: Logging into unencrypted devtest triggers Upgrade Modal and Remind Me Later dismisses', async ({ page }) => {
+    restoreDevtestSnapshot();
+    await page.goto('/');
+
+    // Log into devtest with legacy PIN 1234
+    await page.fill('input[placeholder*="smithfamily"]', 'devtest');
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await pinInput.fill('1234');
+    await page.click('button:has-text("Access Dashboard")');
+
+    // 1. Verify Upgrade Modal appears because devtest has no master password
+    await expect(page.locator('h3:has-text("Upgrade Household Security")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Enable Zero-Knowledge E2EE & Email Recovery')).toBeVisible();
+
+    // 2. Click "Remind Me Later"
+    const remindLaterBtn = page.locator('button:has-text("Remind Me Later")');
+    await expect(remindLaterBtn).toBeVisible();
+    await remindLaterBtn.click();
+
+    // 3. Verify modal closes and user is permitted into dashboard
+    await expect(page.locator('h3:has-text("Upgrade Household Security")')).toHaveCount(0);
+    await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached();
+
+    // Restore clean snapshot
+    restoreDevtestSnapshot();
+  });
+
+  test('Legacy Migration Flow: Upgrades legacy devtest to Zero-Knowledge Master Password and restores base snapshot', async ({ page }) => {
+    restoreDevtestSnapshot();
+    await page.goto('/');
+
+    // Handle dialog alert for successful migration
+    page.on('dialog', async dialog => {
+      expect(dialog.message()).toContain('Household security successfully upgraded to Zero-Knowledge!');
+      await dialog.accept();
+    });
+
+    // Log into devtest with legacy PIN 1234
+    await page.fill('input[placeholder*="smithfamily"]', 'devtest');
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await pinInput.fill('1234');
+    await page.click('button:has-text("Access Dashboard")');
+
+    // Verify Upgrade Modal is visible
+    await expect(page.locator('h3:has-text("Upgrade Household Security")')).toBeVisible({ timeout: 10000 });
+
+    // Fill email and master password
+    await page.fill('input[placeholder="your-email@example.com"]', 'admin@devtest.com');
+    await page.fill('input[placeholder*="Min 8 chars"]', 'EzerSync#2026');
+
+    // Verify all 5 password strength badges turn green
+    await expect(page.locator('text=✅ 8+ Characters')).toBeVisible();
+    await expect(page.locator('text=✅ Uppercase')).toBeVisible();
+    await expect(page.locator('text=✅ Lowercase')).toBeVisible();
+    await expect(page.locator('text=✅ Number')).toBeVisible();
+    await expect(page.locator('text=✅ Special Symbol')).toBeVisible();
+
+    // Click "Upgrade Now ✨"
+    await page.locator('button:has-text("Upgrade Now ✨")').click();
+    await page.waitForTimeout(1000);
+
+    // Verify modal is dismissed and user is in the upgraded dashboard
+    await expect(page.locator('h3:has-text("Upgrade Household Security")')).toHaveCount(0);
+    await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached();
+
+    // Finally restore base snapshot so devtest is returned to its base legacy state
+    restoreDevtestSnapshot();
   });
 
 });

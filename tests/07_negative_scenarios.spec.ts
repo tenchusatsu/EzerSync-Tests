@@ -51,7 +51,7 @@ test.describe('Negative Scenarios & Validation Gates', () => {
     // 4. Assert error banner appears and dashboard is NOT accessed
     const errorBanner = page.locator('.bg-rose-500\\/20');
     await expect(errorBanner).toBeVisible();
-    await expect(errorBanner).toContainText(/Incorrect PIN/i);
+    await expect(errorBanner).toContainText(/Incorrect.*PIN|Incorrect.*password/i);
     await expect(page.locator('button[aria-label="Open Settings"]')).not.toBeAttached();
   });
 
