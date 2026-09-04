@@ -1,29 +1,29 @@
-# 🧪 EzerSync Family Calendar — Regression Test Suite Catalog
+﻿# ðŸ§ª EzerSync Family Calendar â€” Regression Test Suite Catalog
 
 This reference document outlines all automated end-to-end and regression test specifications across the EzerSync Family Calendar project.
 
 ---
 
-## 📂 Test Suites Overview
+## ðŸ“‚ Test Suites Overview
 
 | Spec File | Area | Key Scenarios Covered |
 | :--- | :--- | :--- |
 | **`tests/01_auth.spec.ts`** | **Authentication & Household Setup** | Registration, PIN verification, login, session persistence, invalid PIN rejection. |
-| **`tests/02_calendar.spec.ts`** | **Calendar & Google Sync** | Month/Week/Day view switching, single event CRUD, repeating series creation & editing, "Edit ONLY this instance", time picker flow (Hour → Minute + AM/PM → Save Time), date validation (invalid end date blocking). |
+| **`tests/02_calendar.spec.ts`** | **Calendar & Google Sync** | Month/Week/Day view switching, single event CRUD, repeating series creation & editing, "Edit ONLY this instance", time picker flow (Hour â†’ Minute + AM/PM â†’ Save Time), date validation (invalid end date blocking). |
 | **`tests/03_tasks_chores.spec.ts`** | **Chores & Task Management** | Task creation, completion toggling, view switching ("Today" vs "All Tasks"), custom recurrence day bubbles (no crash), one-time task lifecycle & "Done (clears tomorrow)" badge. |
 | **`tests/04_meals_groceries.spec.ts`** | **Meal Planning & Groceries** | Preset recipe planning, 1-click recipe ingredient push to groceries, auto-categorization (Produce, Meat, Dairy, Pantry), staging multi-item grocery additions, checkoff & clear completed. |
 | **`tests/05_settings.spec.ts`** | **Household Settings & Members** | Light/Dark mode switching, color palette themes, adding family members (sub-calendar & separate Google), duplicate member name rejection, member removal. |
 | **`tests/06_cookbook_recipes.spec.ts`** | **Cookbook & Recipe Hub** | AI Recipe Search, custom recipe creation/edit, share code generation, recipe deletion with custom modal. |
 | **`tests/07_negative_scenarios.spec.ts`** | **Negative Testing & Validation** | Invalid PIN rejection, non-existent hub rejection, duplicate registration rejection, invalid recovery code, bogus recipe import code, empty form validation. |
 | **`tests/08_integrations_e2e.spec.ts`** | **E2E Multi-Tab Integrations** | Direct meal-to-grocery push flow, bulk grocery select/clear, calendar member filter isolation, theme & mode persistence. |
-| **`tests/09_mobile_responsive.spec.ts`** | **Mobile Touch UI & Viewports** | Mobile 5-slot bottom bar with centered Home on iPhone 12, "⋯ More" overflow popup navigation, direct tab switching. |
+| **`tests/09_mobile_responsive.spec.ts`** | **Mobile Touch UI & Viewports** | Mobile 5-slot bottom bar with centered Home on iPhone 12, "â‹¯ More" overflow popup navigation, direct tab switching. |
 | **`tests/10_e2ee_security.spec.ts`** | **v1.1.4 E2EE & Security Boundaries** | Web Crypto password strength validator (5 rules), AES-256-GCM key wrapping & wrong PIN rejection, PIN/Password toggle, live password checklist, Forgot Password recovery navigation. |
 | **`tests/dashboard.spec.ts`** | **Quick Dashboard Smoke Tests** | End-to-end sanity tests for groceries, chores, calendar events, meals, and household settings. |
 | **`tests/overflow.spec.ts`** | **UI Layout & Responsive Constraints** | Mobile portrait/landscape viewport stability, tab scrolling, modal viewport limits. |
 
 ---
 
-## 🔍 Detailed Test Cases by Suite
+## ðŸ” Detailed Test Cases by Suite
 
 ### 1. `tests/01_auth.spec.ts` (Authentication & Security)
 * `Register a new household hub`: Tests full onboarding flow with invite code, hub ID, admin name, and 4-digit PIN.
@@ -36,12 +36,16 @@ This reference document outlines all automated end-to-end and regression test sp
 * `Switch between Month, Week, and Day views`: Asserts responsive grid adjustments across all 3 view modes.
 * `Create, Edit, and Delete single event (via Day Overview inspection gate)`: Verifies full event CRUD through the Day Overview pop-out.
 * `Calendar Event Click Flow: Inspection Gate opens Day Overview before Edit Modal`:
-  * Asserts clicking an event opens the Day Overview Summary pop-out (`schedule entries`, `Tap to edit ✏️`) first.
+  * Asserts clicking an event opens the Day Overview Summary pop-out (`schedule entries`, `Tap to edit âœï¸`) first.
   * Asserts edit modal is not directly displayed until tapping the event inside the overview card.
 * `Calendar Validation: Reject Invalid End Date Range with Error Highlight & Disabled Save`:
-  * Asserts that setting an end date earlier than the start date shows the `⚠️ End date cannot be earlier than start date` warning banner and disables the **Save** button.
+  * Asserts that setting an end date earlier than the start date shows the `âš ï¸ End date cannot be earlier than start date` warning banner and disables the **Save** button.
 * `Create and Edit Series Repeating Events`: Tests recurring rules (`DAILY`, `WEEKDAYS`, `WEEKLY`, `CUSTOM`) and series-wide edits.
-* `Calendar Edge Cases: All-Day Snapping and Time Picker`:
+* Non-Google Recurring Events: Expand to future dates and Delete Entire Series: Expands local offline recurrence rules to future weeks and deletes all instances.
+* Non-Google Recurring Events: Delete ONLY this instance preserves other instances: Deletes a single occurrence of a local repeating event using exdates without affecting the rest.
+* Non-Google Recurring Events: Edit ONLY this instance updates single occurrence: Edits the title of a specific date in a local offline recurring series, verifying the exception is handled properly.
+* Single Event: Edit Date/Time, Toggle All-Day, Reassign Member, and Upgrade to Recurring: Verifies an existing single event can be converted to an all-day recurring event.
+* Calendar Edge Cases: All-Day Snapping and Time Picker:
   * Verifies that checking "All day" snaps the end date to the start date and removes time pickers.
 * `Calendar Celebrations: Birthday filter and Celebration indicator`:
   * Verifies birthday indicator and isolation using the celebration filter.
@@ -54,7 +58,7 @@ This reference document outlines all automated end-to-end and regression test sp
   * Verifies opening the task modal, selecting **Custom**, and toggling day bubbles (Mon, Wed, Fri) without throwing component crashes.
 * `One-Time Task Lifecycle: Completion and Next-Day Prune Indicator`:
   * Tests creating a task with schedule **Once** (for today).
-  * Verifies that completing it marks it done on "Today" and displays **`✓ Done (clears tomorrow)`** on "All Tasks".
+  * Verifies that completing it marks it done on "Today" and displays **`âœ“ Done (clears tomorrow)`** on "All Tasks".
 
 ---
 
@@ -62,8 +66,8 @@ This reference document outlines all automated end-to-end and regression test sp
 * `Bug Fix: Items strictly mapped to "Pantry & Dry" render correctly`: Verifies category assignment and rendering in the grocery board.
 * `AI Grocery Optimization`: Verifies consolidation of duplicate ingredients (e.g. 1 onion + 2 onions -> 3 onions) via AI endpoint.
 * `Direct-to-Cookbook Meal Planning Flow`:
-  * Clicking "+ Plan Dinner" or "+ Plan Tonight's Dinner" opens Family Cookbook with the banner: `📌 Planning [Day]'s dinner — tap a recipe`.
-  * Opening a recipe preview and closing it with `✕` dismisses only the preview while maintaining planning mode.
+  * Clicking "+ Plan Dinner" or "+ Plan Tonight's Dinner" opens Family Cookbook with the banner: `ðŸ“Œ Planning [Day]'s dinner â€” tap a recipe`.
+  * Opening a recipe preview and closing it with `âœ•` dismisses only the preview while maintaining planning mode.
   * Saving the recipe commits it to the target day and updates the meal board.
 
 ---
@@ -80,7 +84,7 @@ This reference document outlines all automated end-to-end and regression test sp
   * Asserts that colors already assigned to existing members are disabled and cannot be selected.
   * Verifies that newly added members are saved with their unique color.
 * `Settings: Navigation Order Customization & Dynamic Tab Reordering`:
-  * Verifies the `🗂️ Navigation` tab renders the reorder list with `▲` and `▼` buttons.
+  * Verifies the `ðŸ—‚ï¸ Navigation` tab renders the reorder list with `â–²` and `â–¼` buttons.
   * Asserts `Home` remains anchored as center while top 3 items display `Bar` and remaining items display `More`.
 
 ---
@@ -120,7 +124,7 @@ This reference document outlines all automated end-to-end and regression test sp
 
 ### 9. `tests/09_mobile_responsive.spec.ts` (Mobile Viewports & Touch UI)
 * `Mobile 5-Slot Bottom Navigation`: Verifies desktop sidebar is hidden and 5-slot bottom bar renders with centered Home on iPhone 12 viewport.
-* `Mobile "⋯ More" Overflow Sheet`: Verifies tapping More opens the popup overflow menu and navigates to overflow tabs.
+* `Mobile "â‹¯ More" Overflow Sheet`: Verifies tapping More opens the popup overflow menu and navigates to overflow tabs.
 * `Mobile Bottom Navigation: Direct tab switching`: Verifies switching across Calendar, Tasks, and Home using bottom navigation.
 
 ---
@@ -129,13 +133,13 @@ This reference document outlines all automated end-to-end and regression test sp
 * `Crypto Engine (Negative & Positive): Password strength rule validator`: Evaluates client-side 5-rule password complexity validator against too short, missing upper, lower, number, and symbol variations.
 * `Crypto Engine: AES-256-GCM Key Wrapping & Wrong PIN Decryption Failure (Negative)`: Verifies key wrapping of Master Encryption Key and cryptographic tag mismatch error on incorrect PIN.
 * `Login UI: Interactive toggle between Quick Convenience PIN and Master Password`: Asserts seamless mode switching, placeholder updates, and disabled submit states.
-* `Registration UI (Negative): Incomplete password requirements keep checklist unfulfilled`: Asserts partial passwords leave badges unfulfilled (`⚪`) and disable submission.
-* `Registration UI (Positive): Strong password fulfills all 5 checklist badges`: Verifies all 5 badges switch to `✅` on strong password.
+* `Registration UI (Negative): Incomplete password requirements keep checklist unfulfilled`: Asserts partial passwords leave badges unfulfilled (`âšª`) and disable submission.
+* `Registration UI (Positive): Strong password fulfills all 5 checklist badges`: Verifies all 5 badges switch to `âœ…` on strong password.
 * `Recovery UI (Navigation & Negative): Forgot Password screen and mode switching`: Verifies Forgot Password form validation, switching to offline Admin Recovery Code form, and returning to Login.
 
 ---
 
-## 🏃 How to Run Tests Manually
+## ðŸƒ How to Run Tests Manually
 
 When you wish to execute the test suite manually:
 
@@ -155,4 +159,5 @@ npx playwright test tests/09_mobile_responsive.spec.ts --project=chromium
 # Run with interactive UI mode
 npx playwright test --ui
 ```
+
 
