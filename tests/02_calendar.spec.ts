@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/auth.fixture';
+﻿import { test, expect } from './fixtures/auth.fixture';
 
 test.describe('Calendar Scenarios', () => {
   test.beforeEach(async ({ authenticatedPage: page }) => {
@@ -23,11 +23,11 @@ test.describe('Calendar Scenarios', () => {
     await page.locator('button:has-text("Save")').filter({ visible: true }).first().click({ force: true });
     await expect(page.getByText('Temp Event').filter({ visible: true }).first()).toBeAttached();
     
-    // Click event pill — triggers Day Overview pop-out
+    // Click event pill â€” triggers Day Overview pop-out
     await page.getByText('Temp Event').filter({ visible: true }).first().click({ force: true });
     
     // In Day Overview, tap the event card to open edit modal
-    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    const tapToEdit = page.locator('text="Tap to edit âœï¸"').first();
     if (await tapToEdit.isVisible()) {
       await tapToEdit.click({ force: true });
     }
@@ -63,15 +63,15 @@ test.describe('Calendar Scenarios', () => {
     // Click event pill
     await page.getByText('Gate Inspection Event').filter({ visible: true }).first().click({ force: true });
 
-    // Assert Day Overview pop-out is visible with "Tap to edit ✏️"
-    const dayOverview = page.locator('text="schedule entries"').or(page.locator('text="Tap to edit ✏️"'));
+    // Assert Day Overview pop-out is visible with "Tap to edit âœï¸"
+    const dayOverview = page.locator('text="schedule entries"').or(page.locator('text="Tap to edit âœï¸"'));
     await expect(dayOverview.first()).toBeVisible();
 
     // Verify edit modal is NOT directly open yet
     await expect(page.locator('button:has-text("Save Event Changes")')).toHaveCount(0);
 
     // Now tap to edit
-    await page.locator('text="Tap to edit ✏️"').first().click({ force: true });
+    await page.locator('text="Tap to edit âœï¸"').first().click({ force: true });
     await expect(page.locator('input[placeholder="Add title"]')).toHaveValue('Gate Inspection Event');
 
     // Clean up
@@ -119,7 +119,7 @@ test.describe('Calendar Scenarios', () => {
     await expect(page.locator('text=Weekly Sync').first()).toBeAttached();
     
     await page.locator('text=Weekly Sync').first().click({ force: true });
-    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    const tapToEdit = page.locator('text="Tap to edit âœï¸"').first();
     if (await tapToEdit.isVisible()) {
       await tapToEdit.click({ force: true });
     }
@@ -144,8 +144,8 @@ test.describe('Calendar Scenarios', () => {
     await page.waitForTimeout(400);
     await expect(page.getByText('Future Recurrence Test').first()).toBeVisible();
 
-    // 3. Navigate forward to NEXT week (▶)
-    await page.locator('button:has-text("▶")').first().click({ force: true });
+    // 3. Navigate forward to NEXT week (â–¶)
+    await page.locator('button:has-text("â–¶")').first().click({ force: true });
     await page.waitForTimeout(500);
 
     // Assert that the recurring event expanded and renders on the next week
@@ -154,7 +154,7 @@ test.describe('Calendar Scenarios', () => {
     // 4. Click event on next week to inspect Day Overview & open Edit Modal
     await page.getByText('Future Recurrence Test').first().click({ force: true });
     await page.waitForTimeout(400);
-    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    const tapToEdit = page.locator('text="Tap to edit âœï¸"').first();
     if (await tapToEdit.isVisible()) {
       await tapToEdit.click({ force: true });
       await page.waitForTimeout(300);
@@ -187,8 +187,8 @@ test.describe('Calendar Scenarios', () => {
     // 6. Verify event is completely gone from the future week
     await expect(page.getByText('Future Recurrence Test')).toHaveCount(0);
 
-    // 7. Navigate back to previous week (◀) and verify it's gone from current week too
-    await page.locator('button:has-text("◀")').first().click({ force: true });
+    // 7. Navigate back to previous week (â—€) and verify it's gone from current week too
+    await page.locator('button:has-text("â—€")').first().click({ force: true });
     await page.waitForTimeout(500);
     await expect(page.getByText('Future Recurrence Test')).toHaveCount(0);
   });
@@ -207,15 +207,15 @@ test.describe('Calendar Scenarios', () => {
     await page.locator('button', { hasText: /^Week$/ }).first().click({ force: true });
     await page.waitForTimeout(400);
 
-    // 3. Navigate forward to NEXT week (▶)
-    await page.locator('button:has-text("▶")').first().click({ force: true });
+    // 3. Navigate forward to NEXT week (â–¶)
+    await page.locator('button:has-text("â–¶")').first().click({ force: true });
     await page.waitForTimeout(500);
     await expect(page.getByText('Single Instance Delete Test').first()).toBeVisible();
 
     // 4. Click the event on the next week
     await page.getByText('Single Instance Delete Test').first().click({ force: true });
     await page.waitForTimeout(400);
-    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    const tapToEdit = page.locator('text="Tap to edit âœï¸"').first();
     if (await tapToEdit.isVisible()) {
       await tapToEdit.click({ force: true });
       await page.waitForTimeout(300);
@@ -248,8 +248,8 @@ test.describe('Calendar Scenarios', () => {
     const currentWeekDays = page.locator('.grid.grid-cols-2.md\\:grid-cols-4 > div').filter({ hasNotText: 'Next Week' });
     await expect(currentWeekDays.getByText('Single Instance Delete Test')).toHaveCount(0);
 
-    // 7. Navigate back to previous week (◀) and verify the original occurrence is STILL present
-    await page.locator('button:has-text("◀")').first().click({ force: true });
+    // 7. Navigate back to previous week (â—€) and verify the original occurrence is STILL present
+    await page.locator('button:has-text("â—€")').first().click({ force: true });
     await page.waitForTimeout(500);
     await expect(currentWeekDays.getByText('Single Instance Delete Test').first()).toBeVisible();
 
@@ -312,14 +312,14 @@ test.describe('Calendar Scenarios', () => {
     await page.locator('button', { hasText: /^Week$/ }).first().click({ force: true });
     await page.waitForTimeout(400);
 
-    // 3. Navigate forward to NEXT week (▶)
-    await page.locator('button:has-text("▶")').first().click({ force: true });
+    // 3. Navigate forward to NEXT week (â–¶)
+    await page.locator('button:has-text("â–¶")').first().click({ force: true });
     await page.waitForTimeout(500);
 
     // 4. Click the event on the next week
     await page.getByText('Edit Single Test').first().click({ force: true });
     await page.waitForTimeout(400);
-    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    const tapToEdit = page.locator('text="Tap to edit âœï¸"').first();
     if (await tapToEdit.isVisible()) {
       await tapToEdit.click({ force: true });
       await page.waitForTimeout(300);
@@ -342,8 +342,8 @@ test.describe('Calendar Scenarios', () => {
     await expect(currentWeekDays.getByText('Edited Single Occurrence')).toBeVisible();
     await expect(currentWeekDays.getByText('Edit Single Test')).toHaveCount(0);
 
-    // 8. Navigate back to previous week (◀) and verify the original title is STILL present
-    await page.locator('button:has-text("◀")').first().click({ force: true });
+    // 8. Navigate back to previous week (â—€) and verify the original title is STILL present
+    await page.locator('button:has-text("â—€")').first().click({ force: true });
     await page.waitForTimeout(500);
     await expect(currentWeekDays.getByText('Edit Single Test').first()).toBeVisible();
     await expect(currentWeekDays.getByText('Edited Single Occurrence')).toHaveCount(0);
@@ -369,7 +369,7 @@ test.describe('Calendar Scenarios', () => {
     // 2. Open edit modal again
     await page.getByText('Morphing Event').first().click({ force: true });
     await page.waitForTimeout(400);
-    const tapToEdit = page.locator('text="Tap to edit ✏️"').first();
+    const tapToEdit = page.locator('text="Tap to edit âœï¸"').first();
     if (await tapToEdit.isVisible()) {
       await tapToEdit.click({ force: true });
       await page.waitForTimeout(300);
@@ -396,8 +396,69 @@ test.describe('Calendar Scenarios', () => {
     // 8. Go to next week and see if it repeated (Daily)
     await page.locator('button', { hasText: /^Week$/ }).first().click({ force: true });
     await page.waitForTimeout(400);
-    await page.locator('button:has-text("▶")').first().click({ force: true });
+    await page.locator('button:has-text("â–¶")').first().click({ force: true });
     await page.waitForTimeout(500);
     await expect(currentWeekDays.getByText('Morphed Event').first()).toBeVisible();
+  });
+
+  test('Calendar Week View: Toggle between Grid and Classic Layouts', async ({ authenticatedPage: page }) => {
+    await page.locator('nav button, aside button, button').filter({ hasText: /📅.*Calendar|Calendar/i }).first().click({ force: true });
+    await page.waitForTimeout(400);
+
+    // Switch to Week View
+    await page.locator('button', { hasText: /^Week$/ }).first().click({ force: true });
+    await page.waitForTimeout(400);
+
+    // Assert Grid and Classic toggles exist
+    const gridBtn = page.locator('button', { hasText: 'Grid' }).first();
+    const classicBtn = page.locator('button', { hasText: 'Classic' }).first();
+
+    await expect(gridBtn).toBeVisible();
+    await expect(classicBtn).toBeVisible();
+
+    // Click Classic
+    await classicBtn.click({ force: true });
+    await page.waitForTimeout(300);
+
+    // Assert Classic 7-Column layout is visible
+    await expect(page.locator('.grid.grid-cols-7').first()).toBeVisible();
+
+    // Click Grid
+    await gridBtn.click({ force: true });
+    await page.waitForTimeout(300);
+
+    // Assert Grid 2x4 layout is visible
+    await expect(page.locator('.grid.grid-cols-2.md\\:grid-cols-4').first()).toBeVisible();
+  });
+
+  test('Calendar Celebrations: Unified Birthday and Anniversary recognition', async ({ authenticatedPage: page }) => {
+    await page.locator('button:has-text("+ Event")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(400);
+    await page.fill('input[placeholder="Add title"]', 'Parents #anniversary');
+    await page.locator('button:has-text("Save")').filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(500);
+
+    // Check if Celebrations pill exists
+    const celebrationsPill = page.locator('button', { hasText: /Celebrations/i }).first();
+    await expect(celebrationsPill).toBeVisible();
+    
+    // Click Celebrations pill
+    await celebrationsPill.click();
+    await page.waitForTimeout(300);
+
+    // Event should still be visible because it's a celebration
+    await expect(page.getByText('Parents #anniversary').first()).toBeVisible();
+
+    // 1-click edit functionality check (opens modal)
+    await page.getByText('Parents #anniversary').first().click({ force: true });
+    await page.waitForTimeout(400);
+    await expect(page.locator('button:has-text("Save Event Changes"), button:has-text("Save")').first()).toBeVisible();
+
+    // Delete it
+    const deleteBtn = page.locator('button:has-text("Delete Event")').first();
+    if (await deleteBtn.isVisible()) {
+        await deleteBtn.click({ force: true });
+        await page.waitForTimeout(500);
+    }
   });
 });
