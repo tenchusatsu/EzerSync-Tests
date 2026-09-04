@@ -12,9 +12,18 @@ test.describe('Authentication & Master PIN Recovery', () => {
     await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
     await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
     await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
+
+    const emailInput = page.locator('input[placeholder="admin@example.com"]');
+    if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await emailInput.fill('admin@test.com');
+    }
+    const masterPassInput = page.locator('input[placeholder*="Min 8 chars"]');
+    if (await masterPassInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await masterPassInput.fill('EzerSync#2026');
+    }
     
-    // Assert Bug Fix: maxLength is now 8, placeholder is **** (not ????)
-    const pinInput = page.locator('input[placeholder="****"]');
+    // Assert Bug Fix: maxLength is now 8, placeholder is **** or 1234
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
     await expect(pinInput).toBeVisible();
     await expect(pinInput).toHaveAttribute('maxLength', '8');
     
@@ -35,7 +44,18 @@ test.describe('Authentication & Master PIN Recovery', () => {
     await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
     await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
     await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
-    await page.fill('input[placeholder="****"]', '1234');
+
+    const emailInput = page.locator('input[placeholder="admin@example.com"]');
+    if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await emailInput.fill('admin@test.com');
+    }
+    const masterPassInput = page.locator('input[placeholder*="Min 8 chars"]');
+    if (await masterPassInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await masterPassInput.fill('EzerSync#2026');
+    }
+
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await pinInput.fill('1234');
     await page.click('button:has-text("Create Household")');
     await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
 
@@ -62,7 +82,18 @@ test.describe('Authentication & Master PIN Recovery', () => {
     await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
     await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
     await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
-    await page.fill('input[placeholder="****"]', '1111'); // Initial PIN
+
+    const emailInput = page.locator('input[placeholder="admin@example.com"]');
+    if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await emailInput.fill('admin@test.com');
+    }
+    const masterPassInput = page.locator('input[placeholder*="Min 8 chars"]');
+    if (await masterPassInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await masterPassInput.fill('EzerSync#2026');
+    }
+
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await pinInput.fill('1111'); // Initial PIN
     await page.click('button:has-text("Create Household")');
     await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
 
@@ -71,7 +102,14 @@ test.describe('Authentication & Master PIN Recovery', () => {
     await page.locator('button:has-text("Sign Out")').filter({ visible: true }).first().click({ force: true });
     
     // 3. Initiate Forgot PIN flow
-    await page.click('button:has-text("Forgot PIN?")');
+    const forgotBtn = page.locator('button:has-text("Forgot Password / PIN?")').or(page.locator('button:has-text("Forgot PIN?")')).first();
+    await forgotBtn.click();
+
+    // If on forgot_password screen, click Admin Recovery Code button
+    const adminRecoveryBtn = page.locator('button:has-text("Admin Recovery Code")');
+    if (await adminRecoveryBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await adminRecoveryBtn.click();
+    }
     
     // Assert Recovery UI is visible
     await expect(page.locator('button:has-text("Reset PIN")')).toBeVisible();

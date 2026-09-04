@@ -48,6 +48,7 @@ npm run report
 | **`tests/07_negative_scenarios.spec.ts`** | **Negative & Error Handling** | Invalid PIN rejection, non-existent hub, duplicate registration rejection, invalid recovery code, bogus recipe import code, empty form validation. |
 | **`tests/08_integrations_e2e.spec.ts`** | **E2E Multi-Tab Integrations** | Direct meal-to-grocery push flow, bulk grocery select/clear, calendar member filter isolation, theme & mode persistence. |
 | **`tests/09_mobile_responsive.spec.ts`** | **Mobile Touch UI & Viewports** | Mobile 5-slot bottom bar with centered Home on iPhone 12, "⋯ More" overflow popup navigation, direct tab switching. |
+| **`tests/10_e2ee_security.spec.ts`** | **v1.1.4 E2EE & Security Boundaries** | Web Crypto password strength validator (5 rules), AES-256-GCM key wrapping & wrong PIN rejection, PIN/Password toggle, live password checklist, Forgot Password recovery navigation. |
 | **`tests/dashboard.spec.ts`** | **Dashboard Smoke Tests** | End-to-end sanity tests across all core modules. |
 | **`tests/overflow.spec.ts`** | **Responsive & Layout Constraints** | Viewport stability, mobile portrait/landscape tabs, modal viewport limits. |
 

@@ -17,6 +17,7 @@ This reference document outlines all automated end-to-end and regression test sp
 | **`tests/07_negative_scenarios.spec.ts`** | **Negative Testing & Validation** | Invalid PIN rejection, non-existent hub rejection, duplicate registration rejection, invalid recovery code, bogus recipe import code, empty form validation. |
 | **`tests/08_integrations_e2e.spec.ts`** | **E2E Multi-Tab Integrations** | Direct meal-to-grocery push flow, bulk grocery select/clear, calendar member filter isolation, theme & mode persistence. |
 | **`tests/09_mobile_responsive.spec.ts`** | **Mobile Touch UI & Viewports** | Mobile 5-slot bottom bar with centered Home on iPhone 12, "⋯ More" overflow popup navigation, direct tab switching. |
+| **`tests/10_e2ee_security.spec.ts`** | **v1.1.4 E2EE & Security Boundaries** | Web Crypto password strength validator (5 rules), AES-256-GCM key wrapping & wrong PIN rejection, PIN/Password toggle, live password checklist, Forgot Password recovery navigation. |
 | **`tests/dashboard.spec.ts`** | **Quick Dashboard Smoke Tests** | End-to-end sanity tests for groceries, chores, calendar events, meals, and household settings. |
 | **`tests/overflow.spec.ts`** | **UI Layout & Responsive Constraints** | Mobile portrait/landscape viewport stability, tab scrolling, modal viewport limits. |
 
@@ -124,18 +125,29 @@ This reference document outlines all automated end-to-end and regression test sp
 
 ---
 
+### 10. `tests/10_e2ee_security.spec.ts` (v1.1.4 Zero-Knowledge E2EE & Security Boundaries)
+* `Crypto Engine (Negative & Positive): Password strength rule validator`: Evaluates client-side 5-rule password complexity validator against too short, missing upper, lower, number, and symbol variations.
+* `Crypto Engine: AES-256-GCM Key Wrapping & Wrong PIN Decryption Failure (Negative)`: Verifies key wrapping of Master Encryption Key and cryptographic tag mismatch error on incorrect PIN.
+* `Login UI: Interactive toggle between Quick Convenience PIN and Master Password`: Asserts seamless mode switching, placeholder updates, and disabled submit states.
+* `Registration UI (Negative): Incomplete password requirements keep checklist unfulfilled`: Asserts partial passwords leave badges unfulfilled (`⚪`) and disable submission.
+* `Registration UI (Positive): Strong password fulfills all 5 checklist badges`: Verifies all 5 badges switch to `✅` on strong password.
+* `Recovery UI (Navigation & Negative): Forgot Password screen and mode switching`: Verifies Forgot Password form validation, switching to offline Admin Recovery Code form, and returning to Login.
+
+---
+
 ## 🏃 How to Run Tests Manually
 
 When you wish to execute the test suite manually:
 
 ```powershell
-# Run all 44 regression tests
+# Run all 50 regression tests
 npx playwright test --project=chromium
 
-# Run all tests across 5 browser/device profiles (220 executions)
+# Run all tests across 5 browser/device profiles (250 executions)
 npx playwright test
 
 # Run a specific test suite
+npx playwright test tests/10_e2ee_security.spec.ts --project=chromium
 npx playwright test tests/07_negative_scenarios.spec.ts --project=chromium
 npx playwright test tests/08_integrations_e2e.spec.ts --project=chromium
 npx playwright test tests/09_mobile_responsive.spec.ts --project=chromium

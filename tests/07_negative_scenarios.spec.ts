@@ -1,5 +1,28 @@
 import { test, expect } from '@playwright/test';
 
+async function registerTestHousehold(page: any, hubId: string, pin = '1234') {
+  await page.waitForSelector('text="Create a new hub"');
+  await page.click('text="Create a new hub"');
+  await page.fill('input[placeholder="e.g. EZER-SYNC-2026"]', 'EZER-SYNC-2026');
+  await page.fill('input[placeholder="e.g. smith-family"]', hubId);
+  await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
+  await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
+
+  const emailInput = page.locator('input[placeholder="admin@example.com"]');
+  if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await emailInput.fill('admin@test.com');
+  }
+  const masterPassInput = page.locator('input[placeholder*="Min 8 chars"]');
+  if (await masterPassInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await masterPassInput.fill('EzerSync#2026');
+  }
+
+  const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+  await pinInput.fill(pin);
+  await page.click('button:has-text("Create Household")');
+  await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
+}
+
 test.describe('Negative Scenarios & Validation Gates', () => {
 
   test.beforeEach(async ({ page }) => {
@@ -13,15 +36,7 @@ test.describe('Negative Scenarios & Validation Gates', () => {
     const uniqueHub = 'authneg' + Date.now();
     
     // 1. Create a real household with PIN 1234
-    await page.waitForSelector('text="Create a new hub"');
-    await page.click('text="Create a new hub"');
-    await page.fill('input[placeholder="e.g. EZER-SYNC-2026"]', 'EZER-SYNC-2026');
-    await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
-    await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
-    await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
-    await page.fill('input[placeholder="****"]', '1234');
-    await page.click('button:has-text("Create Household")');
-    await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
+    await registerTestHousehold(page, uniqueHub, '1234');
 
     // 2. Sign out
     await page.locator('button[aria-label="Open Settings"]').filter({ visible: true }).first().click();
@@ -29,7 +44,8 @@ test.describe('Negative Scenarios & Validation Gates', () => {
 
     // 3. Attempt login with wrong PIN 9999
     await page.fill('input[placeholder*="smithfamily"]', uniqueHub);
-    await page.fill('input[placeholder="****"]', '9999');
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await pinInput.fill('9999');
     await page.click('button:has-text("Access Dashboard")');
 
     // 4. Assert error banner appears and dashboard is NOT accessed
@@ -41,14 +57,14 @@ test.describe('Negative Scenarios & Validation Gates', () => {
 
   test('Non-Existent Household Login: Rejects unknown hub ID', async ({ page }) => {
     // Switch to login if on register
-    const switchLogin = page.locator('button:has-text("Already have a hub? Log In")');
-    if (await switchLogin.isVisible()) {
+    const switchLogin = page.locator('button:has-text("Already have a hub? Log In")').or(page.locator('button:has-text("Back to Login")')).first();
+    if (await switchLogin.isVisible({ timeout: 1000 }).catch(() => false)) {
       await switchLogin.click();
     }
 
-    // Attempt login with a random ghost hub
     await page.fill('input[placeholder*="smithfamily"]', 'ghosthub_' + Date.now());
-    await page.fill('input[placeholder="****"]', '1234');
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await pinInput.fill('1234');
     await page.click('button:has-text("Access Dashboard")');
 
     // Assert error banner appears
@@ -62,15 +78,7 @@ test.describe('Negative Scenarios & Validation Gates', () => {
     const existingHub = 'dupereg' + Date.now();
 
     // 1. Create first household
-    await page.waitForSelector('text="Create a new hub"');
-    await page.click('text="Create a new hub"');
-    await page.fill('input[placeholder="e.g. EZER-SYNC-2026"]', 'EZER-SYNC-2026');
-    await page.fill('input[placeholder="e.g. smith-family"]', existingHub);
-    await page.fill('input[placeholder="The Smith Family"]', 'Original Family');
-    await page.fill('input[placeholder="e.g. John"]', 'Admin 1');
-    await page.fill('input[placeholder="****"]', '1234');
-    await page.click('button:has-text("Create Household")');
-    await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
+    await registerTestHousehold(page, existingHub, '1234');
 
     // 2. Sign out
     await page.locator('button[aria-label="Open Settings"]').filter({ visible: true }).first().click();
@@ -82,7 +90,18 @@ test.describe('Negative Scenarios & Validation Gates', () => {
     await page.fill('input[placeholder="e.g. smith-family"]', existingHub);
     await page.fill('input[placeholder="The Smith Family"]', 'Duplicate Family');
     await page.fill('input[placeholder="e.g. John"]', 'Admin 2');
-    await page.fill('input[placeholder="****"]', '5678');
+
+    const emailInput = page.locator('input[placeholder="admin@example.com"]');
+    if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await emailInput.fill('admin2@test.com');
+    }
+    const masterPassInput = page.locator('input[placeholder*="Min 8 chars"]');
+    if (await masterPassInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await masterPassInput.fill('EzerSync#2026');
+    }
+
+    const pinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await pinInput.fill('5678');
     await page.click('button:has-text("Create Household")');
 
     // 4. Assert error banner rejects duplicate creation
@@ -96,28 +115,27 @@ test.describe('Negative Scenarios & Validation Gates', () => {
     const uniqueHub = 'recovneg' + Date.now();
     
     // 1. Create household
-    await page.waitForSelector('text="Create a new hub"');
-    await page.click('text="Create a new hub"');
-    await page.fill('input[placeholder="e.g. EZER-SYNC-2026"]', 'EZER-SYNC-2026');
-    await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
-    await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
-    await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
-    await page.fill('input[placeholder="****"]', '1111');
-    await page.click('button:has-text("Create Household")');
-    await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
+    await registerTestHousehold(page, uniqueHub, '1111');
 
     // 2. Sign out
     await page.locator('button[aria-label="Open Settings"]').filter({ visible: true }).first().click();
     await page.locator('button:has-text("Sign Out")').filter({ visible: true }).first().click({ force: true });
 
     // 3. Initiate Forgot PIN flow
-    await page.click('button:has-text("Forgot PIN?")');
+    const forgotBtn = page.locator('button:has-text("Forgot Password / PIN?")').or(page.locator('button:has-text("Forgot PIN?")')).first();
+    await forgotBtn.click();
+
+    const adminRecoveryBtn = page.locator('button:has-text("Admin Recovery Code")');
+    if (await adminRecoveryBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await adminRecoveryBtn.click();
+    }
     await expect(page.locator('button:has-text("Reset PIN")')).toBeVisible();
 
     // 4. Fill Recovery Form with invalid master code
     await page.fill('input[placeholder*="smithfamily"]', uniqueHub);
     await page.fill('input[placeholder="Enter admin code"]', 'wrong-bogus-code');
-    await page.fill('input[placeholder="****"]', '55555555');
+    const newPinInput = page.locator('input[placeholder="****"]').or(page.locator('input[placeholder="1234"]')).first();
+    await newPinInput.fill('55555555');
     await page.click('button:has-text("Reset PIN")');
 
     // 5. Assert error banner appears and PIN was NOT updated
@@ -129,15 +147,7 @@ test.describe('Negative Scenarios & Validation Gates', () => {
   test('Bogus Recipe Import Code Rejection: Shows failure alert', async ({ page }) => {
     // 1. Register and login
     const uniqueHub = 'recipeneg' + Date.now();
-    await page.waitForSelector('text="Create a new hub"');
-    await page.click('text="Create a new hub"');
-    await page.fill('input[placeholder="e.g. EZER-SYNC-2026"]', 'EZER-SYNC-2026');
-    await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
-    await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
-    await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
-    await page.fill('input[placeholder="****"]', '1234');
-    await page.click('button:has-text("Create Household")');
-    await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
+    await registerTestHousehold(page, uniqueHub, '1234');
 
     // 2. Open Cookbook tab
     const cookbookNav = page.locator('nav button, aside button, button').filter({ hasText: /📖.*Cookbook|Cookbook/i }).filter({ visible: true }).first();
@@ -169,46 +179,47 @@ test.describe('Negative Scenarios & Validation Gates', () => {
   test('Form Validation Negatives: Empty Event and Chore titles are prevented', async ({ page }) => {
     // 1. Register and login
     const uniqueHub = 'formneg' + Date.now();
-    await page.waitForSelector('text="Create a new hub"');
-    await page.click('text="Create a new hub"');
-    await page.fill('input[placeholder="e.g. EZER-SYNC-2026"]', 'EZER-SYNC-2026');
-    await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
-    await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
-    await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
-    await page.fill('input[placeholder="****"]', '1234');
-    await page.click('button:has-text("Create Household")');
-    await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
+    await registerTestHousehold(page, uniqueHub, '1234');
 
-    // 2. Switch to Calendar tab
-    await page.locator('nav button, aside button, button').filter({ hasText: /📅.*Calendar|Calendar/i }).first().click({ force: true });
+    // 2. Test Empty Event Submission (Calendar)
+    const calNav = page.locator('nav button, aside button, button').filter({ hasText: /📅.*Calendar|Calendar/i }).filter({ visible: true }).first();
+    await calNav.click({ force: true });
     await page.waitForTimeout(500);
 
-    // Open + Event modal
+    // Click + Event
     await page.locator('button:has-text("+ Event")').filter({ visible: true }).first().click({ force: true });
-    const eventModalTitle = page.locator('h3').filter({ hasText: /Add Calendar Event|Add Event|New Event/i });
-    await expect(eventModalTitle).toBeVisible();
+    const titleInput = page.locator('input[placeholder="Add title"]');
+    await expect(titleInput).toBeVisible();
 
-    // Leave title blank and attempt save
-    await page.locator('button:has-text("Save")').locator('visible=true').first().click({ force: true });
-    // Event modal should NOT close because title is required
-    await expect(eventModalTitle).toBeVisible();
-    
-    // Close modal
-    await page.locator('.fixed button:has-text("✕")').first().click({ force: true });
+    // Leave title blank and assert submit fails HTML5 validation (value remains empty)
+    await expect(titleInput).toBeEmpty();
+    await page.locator('button:has-text("Save")').filter({ visible: true }).first().click({ force: true });
 
-    // 3. Switch to Tasks tab
-    await page.locator('nav button, aside button, button').filter({ hasText: /📋.*Tasks|Tasks/i }).first().click({ force: true });
+    // Modal must remain open because required field stopped submission
+    await expect(titleInput).toBeVisible();
+
+    // Close event modal
+    const closeBtn = page.locator('button:has-text("Cancel")').or(page.locator('button:has-text("✕")')).first();
+    if (await closeBtn.isVisible().catch(() => false)) {
+      await closeBtn.click({ force: true });
+    }
+
+    // 3. Test Empty Chore Submission (Tasks)
+    const tasksNav = page.locator('nav button, aside button, button').filter({ hasText: /✓.*Tasks|Tasks/i }).filter({ visible: true }).first();
+    await tasksNav.click({ force: true });
     await page.waitForTimeout(500);
 
-    // Open + Task modal
-    await page.locator('button:has-text("+ Task")').locator('visible=true').first().click({ force: true });
-    const choreModalTitle = page.locator('h3').filter({ hasText: /Schedule Chore|Add Task|Add New Task/i });
-    await expect(choreModalTitle).toBeVisible();
+    // Click + Task
+    await page.locator('button:has-text("+ Task")').filter({ visible: true }).first().click({ force: true });
+    const choreInput = page.locator('input[placeholder*="Water plants"]');
+    await expect(choreInput).toBeVisible();
 
-    // Leave title blank and attempt save
-    await page.locator('button:has-text("Save Task Schedule")').locator('visible=true').first().click({ force: true });
-    // Chore modal should NOT close
-    await expect(choreModalTitle).toBeVisible();
+    // Leave chore title blank and click Save
+    await expect(choreInput).toBeEmpty();
+    await page.locator('button:has-text("Save Task Schedule")').filter({ visible: true }).first().click({ force: true });
+
+    // Modal must remain open
+    await expect(choreInput).toBeVisible();
   });
 
 });

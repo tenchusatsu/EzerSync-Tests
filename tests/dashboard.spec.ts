@@ -17,7 +17,18 @@ async function setupDummyHousehold(page) {
   await page.fill('input[placeholder="e.g. smith-family"]', uniqueHub);
   await page.fill('input[placeholder="The Smith Family"]', 'Test Family');
   await page.fill('input[placeholder="e.g. John"]', 'Admin Test');
-  await page.fill('input[type="password"]', '1234');
+
+  const emailInput = page.locator('input[placeholder="admin@example.com"]');
+  if (await emailInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await emailInput.fill('admin@test.com');
+  }
+  const masterPassInput = page.locator('input[placeholder*="Min 8 chars"]');
+  if (await masterPassInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await masterPassInput.fill('EzerSync#2026');
+  }
+
+  const pinInput = page.locator('input[maxLength="8"]');
+  await pinInput.fill('1234');
   
   await page.click('button:has-text("Create Household")');
   await expect(page.locator('button[aria-label="Open Settings"]')).toBeAttached({ timeout: 10000 });
