@@ -70,7 +70,7 @@ test.describe('Meals & Groceries: AI & Category Fixes', () => {
 
     // 3. Verify Family Cookbook opens in planning mode with banner
     await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
-    await expect(page.locator('text=/ðŸ“Œ Planning .+dinner/')).toBeVisible();
+    await expect(page.locator('p').filter({ hasText: /Planning .*dinner/i })).toBeVisible();
 
     // 4. Click a recipe card to preview/edit
     const recipeCard = page.locator('div.cursor-pointer').filter({ hasText: 'Prep:' }).first();
@@ -88,7 +88,7 @@ test.describe('Meals & Groceries: AI & Category Fixes', () => {
 
       // Verify Family Cookbook is STILL open with planning banner
       await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
-      await expect(page.locator('text=/ðŸ“Œ Planning .+dinner/')).toBeVisible();
+      await expect(page.locator('p').filter({ hasText: /Planning .*dinner/i })).toBeVisible();
 
       // Now click recipe card again and save
       await recipeCard.click();
@@ -128,3 +128,5 @@ test.describe('Meals & Groceries: AI & Category Fixes', () => {
     await expect(currentWeekBtn).toBeHidden();
   });
 });
+
+
