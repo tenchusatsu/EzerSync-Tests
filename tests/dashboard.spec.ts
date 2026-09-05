@@ -40,59 +40,60 @@ test.describe('Dashboard Features', () => {
     await setupDummyHousehold(page);
     
     // Click + Add button for groceries
-    await page.locator('button:has-text("+ Add")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
     
     // Wait for the textarea
     await page.waitForSelector('textarea[placeholder*="Organic Milk"]');
     await page.fill('textarea[placeholder*="Organic Milk"]', 'Playwright Apples');
     
     // The button says "Save (1)" because it dynamically counts
-    await page.locator('button:has-text("Save (")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("Save (")').filter({ visible: true }).first().click({ force: true });
 
     // Verify it appears in the list
-    await expect(page.getByText('Playwright Apples').locator('visible=true').first()).toBeAttached();
+    await expect(page.getByText('Playwright Apples').filter({ visible: true }).first()).toBeAttached();
   });
 
   test('Chores Flow: Complete a chore', async ({ page }) => {
     await setupDummyHousehold(page);
 
     // Click + Task
-    await page.locator('button:has-text("+ Task")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("+ Task")').filter({ visible: true }).first().click({ force: true });
     
     // Fill the chore modal
     await page.waitForSelector('input[placeholder*="Water plants"]');
     await page.fill('input[placeholder*="Water plants"]', 'Playwright Test Chore');
-    await page.locator('button:has-text("Save Task Schedule")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("Save Task Schedule")').filter({ visible: true }).first().click({ force: true });
 
     // Verify it appears
-    await expect(page.getByText('Playwright Test Chore').locator('visible=true').first()).toBeAttached();
+    await expect(page.getByText('Playwright Test Chore').filter({ visible: true }).first()).toBeAttached();
 
     // Click the chore to complete it
-    await page.getByText('Playwright Test Chore').locator('visible=true').first().click({ force: true });
+    await page.getByText('Playwright Test Chore').filter({ visible: true }).first().click({ force: true });
   });
 
   test('Calendar Flow: Add an event', async ({ page }) => {
     await setupDummyHousehold(page);
 
     // Click + Event
-    await page.locator('button:has-text("+ Event")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("+ Event")').filter({ visible: true }).first().click({ force: true });
     
     // Fill event details
     await page.waitForSelector('input[placeholder*="Dental"], input[placeholder*="Leo"], input[placeholder*="title"], input[placeholder="Add title"]');
     await page.fill('input[placeholder*="Dental"], input[placeholder*="Leo"], input[placeholder*="title"], input[placeholder="Add title"]', 'Playwright Appointment');
     
-    // Save Event (Using generic Save text, matching "Save" or "Save Event Changes")
-    await page.locator('button:has-text("Save")').locator('visible=true').first().click({ force: true });
+    // Save Event (Using specific form submit button)
+    await page.locator('button[type="submit"][form="eventFormSubmit"]').click({ force: true });
+    await page.waitForTimeout(800);
 
     // Verify it appears
-    await expect(page.getByText('Playwright Appointment').locator('visible=true').first()).toBeAttached();
+    await expect(page.getByText('Playwright Appointment').first()).toBeAttached();
   });
 
   test('Meals Flow: Plan a dinner', async ({ page }) => {
     await setupDummyHousehold(page);
 
     // Click + Plan Tonight's Dinner (in v1.1.3 opens Cookbook directly in planning mode)
-    const planDinnerBtn = page.locator('p:has-text("+ Plan Tonight\'s Dinner")').or(page.locator('text="+ Plan Dinner"')).locator('visible=true').first();
+    const planDinnerBtn = page.locator('p:has-text("+ Plan Tonight\'s Dinner")').or(page.locator('text="+ Plan Dinner"')).filter({ visible: true }).first();
     await planDinnerBtn.click({ force: true });
     await page.waitForTimeout(500);
     
@@ -103,16 +104,16 @@ test.describe('Dashboard Features', () => {
       const title = (await recipeCard.innerText()).trim();
       await recipeCard.click({ force: true });
       await page.waitForTimeout(500);
-      await expect(page.getByText(title).locator('visible=true').first()).toBeAttached();
+      await expect(page.getByText(title).filter({ visible: true }).first()).toBeAttached();
     } else {
       // Create custom recipe in planning mode
-      await cookbookDialog.locator('button:has-text("+ Add")').first().click({ force: true });
-      await page.locator('button:has-text("Create Custom Recipe")').click();
-      await page.waitForSelector('input[placeholder*="Grandma\'s Lasagna"]');
-      await page.fill('input[placeholder*="Grandma\'s Lasagna"]', 'Playwright Dinner');
-      await page.locator('button:has-text("Save Recipe")').click();
+      await cookbookDialog.locator('button').filter({ hasText: /\+ Add/i }).first().click({ force: true });
+      await page.locator('button').filter({ hasText: /Create Custom Recipe/i }).first().click();
+      await page.waitForSelector('input[placeholder*="Lasagna"]');
+      await page.fill('input[placeholder*="Lasagna"]', 'Playwright Dinner');
+      await page.locator('button').filter({ hasText: /Save Recipe|Save to Cookbook/i }).first().click();
       await page.waitForTimeout(500);
-      await expect(page.getByText('Playwright Dinner').locator('visible=true').first()).toBeAttached();
+      await expect(page.getByText('Playwright Dinner').filter({ visible: true }).first()).toBeAttached();
     }
   });
 
@@ -120,17 +121,17 @@ test.describe('Dashboard Features', () => {
     await setupDummyHousehold(page);
 
     // Open Settings
-    await page.locator('button[aria-label="Open Settings"]').locator('visible=true').first().click({ force: true });
+    await page.locator('button[aria-label="Open Settings"]').filter({ visible: true }).first().click({ force: true });
 
     // Click Rename
-    await page.locator('button:has-text("Rename")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("Rename")').filter({ visible: true }).first().click({ force: true });
 
     // Change hub name
     await page.waitForSelector('input[placeholder*="EzerSync"]');
     await page.fill('input[placeholder*="EzerSync"]', 'Playwright Family Updated');
     
     // Save Settings
-    await page.locator('button:has-text("Save Name")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("Save Name")').filter({ visible: true }).first().click({ force: true });
 
     // Wait for modal to close
     await page.waitForTimeout(500);

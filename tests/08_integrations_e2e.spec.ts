@@ -8,17 +8,17 @@ test.describe('End-to-End User Journeys & Multi-Tab Integrations', () => {
     await page.waitForTimeout(500);
 
     // 2. Click + Plan Dinner on today's meal card
-    const planDinnerBtn = page.locator('button, p').filter({ hasText: /\+ Plan Dinner|\+ Plan Tonight's Dinner|\+ Choose Meal/i }).locator('visible=true').first();
+    const planDinnerBtn = page.locator('button, p, span').filter({ hasText: /\+ Plan Dinner|\+ Plan Tonight's Dinner|\+ Choose Meal/i }).filter({ visible: true }).first();
     await planDinnerBtn.click({ force: true });
     await page.waitForTimeout(500);
 
     // 3. In Cookbook modal, add a custom recipe with known ingredients
     const cookbookDialog = page.locator('.fixed').filter({ hasText: 'Family Cookbook' });
-    await cookbookDialog.locator('button:has-text("+ Add")').first().click({ force: true });
-    await page.locator('button:has-text("Create Custom Recipe")').click();
+    await cookbookDialog.locator('button').filter({ hasText: /\+ Add/i }).first().click({ force: true });
+    await page.locator('button').filter({ hasText: /Create Custom Recipe/i }).first().click();
 
-    await page.waitForSelector('input[placeholder*="Grandma\'s Lasagna"]');
-    await page.fill('input[placeholder*="Grandma\'s Lasagna"]', 'Garlic Butter Shrimp');
+    await page.waitForSelector('input[placeholder*="Lasagna"]');
+    await page.fill('input[placeholder*="Lasagna"]', 'Garlic Butter Shrimp');
 
     // Add ingredients
     await page.fill('input[placeholder="Add ingredient..."]', '1 lb Shrimp');
@@ -28,7 +28,7 @@ test.describe('End-to-End User Journeys & Multi-Tab Integrations', () => {
     await page.locator('button', { hasText: /^Add$/ }).click();
 
     // Save recipe to plan
-    await page.locator('button:has-text("Save Recipe")').click();
+    await page.locator('button').filter({ hasText: /Save Recipe|Save to Cookbook/i }).first().click();
     await page.waitForTimeout(1000);
 
     // 4. On the planned meal card, click grocery push button
@@ -63,7 +63,7 @@ test.describe('End-to-End User Journeys & Multi-Tab Integrations', () => {
     await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
     await page.waitForSelector('textarea[placeholder*="Organic Milk"]');
     await page.fill('textarea[placeholder*="Organic Milk"]', 'Apples\nBananas');
-    await page.locator('button:has-text("Save (")').locator('visible=true').first().click({ force: true });
+    await page.locator('button:has-text("Save (")').filter({ visible: true }).first().click({ force: true });
     await page.waitForTimeout(500);
 
     await expect(page.getByText('Apples').first()).toBeVisible();

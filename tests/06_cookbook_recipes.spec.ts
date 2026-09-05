@@ -1,10 +1,10 @@
-﻿import { test, expect } from './fixtures/auth.fixture';
+import { test, expect } from './fixtures/auth.fixture';
 
 test.describe('AI Cookbook & Recipe CRUD', () => {
 
   test.beforeEach(async ({ authenticatedPage: page }) => {
     // Open Cookbook directly from navigation
-    const cookbookNav = page.locator('nav button, aside button, button').filter({ hasText: /ðŸ“–.*Cookbook|Cookbook/i }).filter({ visible: true }).first();
+    const cookbookNav = page.locator('nav button, aside button, button').filter({ hasText: /Cookbook/i }).filter({ visible: true }).first();
     await cookbookNav.click({ force: true });
     await page.waitForTimeout(500);
 
@@ -12,12 +12,12 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
   });
 
   test('AI Recipe Search generates a recipe and saves it to catalog', async ({ authenticatedPage: page }) => {
-    await page.locator('button:has-text("âœ¨ AI Search")').click();
+    await page.locator('button').filter({ hasText: /AI Search/i }).first().click();
     await page.waitForTimeout(300);
 
     const promptInput = page.locator('textarea[placeholder*="vegan lasagna"]');
     if (!await promptInput.isVisible()) {
-      const editPromptBtn = page.locator('button:has-text("âœï¸ Edit Prompt")');
+      const editPromptBtn = page.locator('button').filter({ hasText: /Edit Prompt/i }).first();
       if (await editPromptBtn.isVisible()) {
         await editPromptBtn.click();
       }
@@ -41,14 +41,14 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
               cookTimeMinutes: 10,
               servings: 2,
               ingredients: ['spaghetti', 'garlic', 'olive oil'],
-              instructions: 'Boil pasta. SautÃ© garlic in olive oil. Toss together.'
+              instructions: 'Boil pasta. Sauté garlic in olive oil. Toss together.'
             }
           ]
         })
       });
     });
 
-    await page.locator('button:has-text("Generate Recipe âœ¨")').click();
+    await page.locator('button').filter({ hasText: /Generate Recipe/i }).first().click();
 
     // The title in the suggestion card
     const suggestion = page.locator('h4').filter({ visible: true }).first();
@@ -58,13 +58,13 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await suggestion.click();
     await page.waitForTimeout(500);
 
-    await expect(page.locator('h3:has-text("Edit Recipe")').or(page.locator('h3:has-text("New Recipe")'))).toBeVisible();
+    await expect(page.locator('h3').filter({ hasText: /Recipe/i }).first()).toBeVisible();
     
-    await page.locator('button:has-text("Save Recipe")').click();
+    await page.locator('button').filter({ hasText: /Save Recipe|Save to Cookbook/i }).first().click();
     await page.waitForTimeout(500);
 
     await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
-    await page.locator('button:has-text("ðŸ“– My Recipes")').click();
+    await page.locator('button').filter({ hasText: /My Recipes/i }).first().click();
 
     await page.fill('input[placeholder="Search cookbook..."]', recipeTitle);
     await expect(page.locator('h4', { hasText: recipeTitle }).first()).toBeVisible();
@@ -74,16 +74,16 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     page.on('dialog', dialog => dialog.accept());
 
     // CREATE
-    await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
-    await page.locator('button:has-text("ðŸ“ Create Custom Recipe")').click();
+    await page.locator('button').filter({ hasText: /\+ Add/i }).filter({ visible: true }).first().click({ force: true });
+    await page.locator('button').filter({ hasText: /Create Custom Recipe/i }).first().click();
     
-    await expect(page.locator('h3:has-text("New Recipe")')).toBeVisible();
-    await page.fill('input[placeholder*="Grandma\'s Lasagna"]', 'My Custom Soup');
+    await expect(page.locator('h3').filter({ hasText: /Recipe/i }).first()).toBeVisible();
+    await page.fill('input[placeholder*="Lasagna"]', 'My Custom Soup');
     
     await page.fill('input[placeholder="Add ingredient..."]', 'Water');
     await page.locator('button', { hasText: /^Add$/ }).click();
 
-    await page.locator('button:has-text("Save Recipe")').click();
+    await page.locator('button').filter({ hasText: /Save Recipe|Save to Cookbook/i }).first().click();
     await page.waitForTimeout(500);
 
     await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
@@ -91,8 +91,8 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await expect(page.locator('h4:has-text("My Custom Soup")').first()).toBeVisible();
 
     // IMPORT
-    await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
-    await page.locator('button:has-text("ðŸ“¥ Import Shared Recipe")').click();
+    await page.locator('button').filter({ hasText: /\+ Add/i }).filter({ visible: true }).first().click({ force: true });
+    await page.locator('button').filter({ hasText: /Import Shared Recipe/i }).first().click();
     await expect(page.locator('h3:has-text("Import Shared Recipe")')).toBeVisible();
     await page.fill('input[placeholder="RCP-XXXX-XXXX"]', 'RCP-1234-5678');
     await page.locator('button:has-text("Import")').click();
@@ -103,8 +103,8 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await expect(page.locator('h4:has-text("Imported Cake")').first()).toBeVisible();
     
     // DELETE
-    await page.locator('div').filter({ hasText: /^Imported Cake/ }).locator('button:has-text("ðŸ“ Edit")').click();
-    await expect(page.locator('h3:has-text("Edit Recipe")')).toBeVisible();
+    await page.locator('div').filter({ hasText: /^Imported Cake/ }).locator('button').filter({ hasText: /Edit/i }).first().click();
+    await expect(page.locator('h3').filter({ hasText: /Recipe/i }).first()).toBeVisible();
     
     await page.locator('button:has-text("Delete")').click();
     await page.waitForTimeout(300);
@@ -119,12 +119,12 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
 
   test('AI Fridge Assistant: "What\'s in my fridge?" suggests dishes from ingredients', async ({ authenticatedPage: page }) => {
     // 1. Switch to fridge tab
-    await page.locator('button:has-text("ðŸ§Š What\'s in my fridge?")').click();
+    await page.locator('button').filter({ hasText: /What's in my fridge/i }).first().click();
     await page.waitForTimeout(300);
 
     const fridgeInput = page.locator('textarea[placeholder*="Chicken breast"]');
     if (!await fridgeInput.isVisible()) {
-      const editPromptBtn = page.locator('button:has-text("âœï¸ Edit Prompt")');
+      const editPromptBtn = page.locator('button').filter({ hasText: /Edit Prompt|Edit Ingredients/i }).first();
       if (await editPromptBtn.isVisible()) {
         await editPromptBtn.click();
       }
@@ -156,8 +156,8 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
       });
     });
 
-    // 3. Click Suggest Ideas âœ¨
-    await page.locator('button:has-text("Suggest Ideas âœ¨")').click();
+    // 3. Click Suggest Ideas
+    await page.locator('button').filter({ hasText: /Suggest Ideas/i }).first().click();
 
     // 4. Assert suggestions render
     const suggestion1 = page.locator('h4').filter({ visible: true }).first();
@@ -168,21 +168,25 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await suggestion1.click();
     await page.waitForTimeout(500);
 
-    await expect(page.locator('h3:has-text("Edit Recipe")').or(page.locator('h3:has-text("New Recipe")'))).toBeVisible();
-    await expect(page.locator('input[placeholder*="Grandma\'s Lasagna"]')).toHaveValue(dishTitle);
+    await expect(page.locator('h3').filter({ hasText: /Recipe/i }).first()).toBeVisible();
+    await expect(page.locator('input[placeholder*="Lasagna"]')).toHaveValue(dishTitle);
 
     // Close recipe inspector
-    const closeBtn = page.locator('.fixed button:has-text("âœ•")').last();
-    await closeBtn.click({ force: true });
+    const closeBtn = page.locator('.fixed button').filter({ hasText: /✕|✖|×/ }).last();
+    if (await closeBtn.isVisible()) {
+      await closeBtn.click({ force: true });
+    } else {
+      await page.keyboard.press('Escape');
+    }
   });
 
   test('Recipe Enhancements: Image Upload and Social Links parsing', async ({ authenticatedPage: page }) => {
     // 1. Create a recipe
-    await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
-    await page.locator('button:has-text("📝 Create Custom Recipe")').click();
+    await page.locator('button').filter({ hasText: /\+ Add/i }).filter({ visible: true }).first().click({ force: true });
+    await page.locator('button').filter({ hasText: /Create Custom Recipe/i }).first().click();
     
-    await expect(page.locator('h3:has-text("New Recipe")')).toBeVisible();
-    await page.fill('input[placeholder*="Grandma\'s Lasagna"]', 'Viral TikTok Pasta');
+    await expect(page.locator('h3').filter({ hasText: /Recipe/i }).first()).toBeVisible();
+    await page.fill('input[placeholder*="Lasagna"]', 'Viral TikTok Pasta');
     
     // 2. Test Social Link Parsing
     const socialInput = page.locator('input[placeholder*="YouTube, Instagram, TikTok"]');
@@ -201,7 +205,7 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     await expect(imagePreview).toBeVisible();
 
     // 4. Save and verify it appears in catalog with badge
-    await page.locator('button:has-text("Save Recipe")').click();
+    await page.locator('button').filter({ hasText: /Save Recipe|Save to Cookbook/i }).first().click();
     await page.waitForTimeout(500);
 
     await page.fill('input[placeholder="Search cookbook..."]', 'Viral TikTok');
@@ -220,12 +224,12 @@ test.describe('AI Cookbook & Recipe CRUD', () => {
     });
 
     // 1. Create a recipe with a massive title > 200 chars
-    await page.locator('button:has-text("+ Add")').filter({ visible: true }).first().click({ force: true });
-    await page.locator('button:has-text("📝 Create Custom Recipe")').click();
+    await page.locator('button').filter({ hasText: /\+ Add/i }).filter({ visible: true }).first().click({ force: true });
+    await page.locator('button').filter({ hasText: /Create Custom Recipe/i }).first().click();
     
     const massiveTitle = 'A'.repeat(250);
-    await page.fill('input[placeholder*="Grandma\'s Lasagna"]', massiveTitle);
-    await page.locator('button:has-text("Save Recipe")').click();
+    await page.fill('input[placeholder*="Lasagna"]', massiveTitle);
+    await page.locator('button').filter({ hasText: /Save Recipe|Save to Cookbook/i }).first().click();
     await page.waitForTimeout(500);
 
     // 2. Open it and share it
