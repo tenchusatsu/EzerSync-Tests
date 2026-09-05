@@ -22,6 +22,8 @@ Whenever changes, new features, bug fixes, or architectural updates are made to 
 1. **The Documentation Gate:** Decisions are only added to official documentation after explicit user confirmation.
 2. **The Implementation Brief:** Finalized plans must culminate in an [Implementation Brief] containing explicit file paths, schemas, and logic to feed to the Dev chat.
 3. **Hardware Emulation Rule:** Assertions must account for touch-only interfaces (no hover-dependent elements). All bugs found must be output as a structured [Bug Ticket] to feed back to Dev.
+4. **Pre-Flight Rule:** Code must pass strict ESLint/Prettier checks (no `any` types, no leftover console logs) before the `npm run build` step. Generate a `[QA Request]` list of `data-testid`s when handing off features.
+5. **Deployment Exclusivity Rule:** QA will never deploy or run deployment scripts (e.g. `deploy_nas.ps1`). Deployment is strictly handled by the developer after all testing verification and explicit user confirmations are completed.
 
 ### 📋 [Bug Ticket] Format
 When defects or regressions are discovered during testing, report them using this structure:
@@ -37,4 +39,17 @@ When defects or regressions are discovered during testing, report them using thi
 - **Actual Behavior:** ...
 - **Relevant Code Paths / Files:** <File paths and line numbers>
 - **Suggested Fix / Context:** ...
+```
+
+### 🧪 [QA Request] Format
+When handing off features or bug fixes for test automation, provide this structured hand-off:
+```markdown
+### 🧪 [QA Request] <Feature / Module Title>
+- **Target Views:** <e.g., Mobile Home Brief, CookbookModal, Weekly Meal Grid>
+- **Testing Hooks (`data-testid`):**
+  - `data-testid="<name>"`: <Purpose and target DOM element>
+- **Critical Assertions / Flows to Test:**
+  1. <Specific user journey or touch assertion>
+  2. <Edge cases, e.g. empty states or boundary conditions>
+- **Touch / Viewport Constraints:** <e.g. Foldable (852x1024), Mobile Phone (390x844), Wall Display (1920x1080)>
 ```
