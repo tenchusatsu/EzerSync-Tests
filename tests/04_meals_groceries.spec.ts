@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/auth.fixture';
+﻿import { test, expect } from './fixtures/auth.fixture';
 
 test.describe('Meals & Groceries: AI & Category Fixes', () => {
 
@@ -70,7 +70,7 @@ test.describe('Meals & Groceries: AI & Category Fixes', () => {
 
     // 3. Verify Family Cookbook opens in planning mode with banner
     await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
-    await expect(page.locator('text=/📌 Planning .+dinner/')).toBeVisible();
+    await expect(page.locator('text=/ðŸ“Œ Planning .+dinner/')).toBeVisible();
 
     // 4. Click a recipe card to preview/edit
     const recipeCard = page.locator('div.cursor-pointer').filter({ hasText: 'Prep:' }).first();
@@ -81,14 +81,14 @@ test.describe('Meals & Groceries: AI & Category Fixes', () => {
       // Verify Recipe Edit modal opens
       await expect(page.locator('h3:has-text("Edit Recipe")').or(page.locator('h3:has-text("New Recipe")'))).toBeVisible();
 
-      // Test cancel dismiss: click Close (✕) on preview
-      const previewClose = page.locator('.fixed button:has-text("✕")').last();
+      // Test cancel dismiss: click Close (âœ•) on preview
+      const previewClose = page.locator('.fixed button:has-text("âœ•")').last();
       await previewClose.click({ force: true });
       await page.waitForTimeout(300);
 
       // Verify Family Cookbook is STILL open with planning banner
       await expect(page.locator('h3:has-text("Family Cookbook")')).toBeVisible();
-      await expect(page.locator('text=/📌 Planning .+dinner/')).toBeVisible();
+      await expect(page.locator('text=/ðŸ“Œ Planning .+dinner/')).toBeVisible();
 
       // Now click recipe card again and save
       await recipeCard.click();
@@ -97,14 +97,34 @@ test.describe('Meals & Groceries: AI & Category Fixes', () => {
       await page.waitForTimeout(500);
 
       // Close cookbook if open
-      const closeCookbook = page.locator('button:has-text("✕")').first();
+      const closeCookbook = page.locator('button:has-text("âœ•")').first();
       if (await closeCookbook.isVisible()) {
         await closeCookbook.click({ force: true });
       }
 
       // Verify Meals tab reflects the plan
-      await expect(page.locator('button:has-text("🛒 Groceries")').or(page.locator('button:has-text("✏️ Change")')).first()).toBeVisible();
+      await expect(page.locator('button:has-text("ðŸ›’ Groceries")').or(page.locator('button:has-text("âœï¸ Change")')).first()).toBeVisible();
     }
   });
-});
 
+  test('Meal Planner: 2x4 Pagination (Next/Prev/Current Week navigation)', async ({ authenticatedPage: page }) => {
+    await page.locator('nav button, aside button').filter({ hasText: /Meals|Meal/i }).filter({ visible: true }).first().click({ force: true });
+    await page.waitForTimeout(400);
+
+    // Click "Plan Next Week"
+    await page.locator('button:has-text("Plan Next Week")').first().click({ force: true });
+    await page.waitForTimeout(300);
+
+    // Verify "Current Week" button appears since we are offset
+    const currentWeekBtn = page.locator('button:has-text("Current Week")').first();
+    await expect(currentWeekBtn).toBeVisible();
+
+    // Click "Previous" (â†  Previous)
+    const prevBtn = page.locator('button', { hasText: /Prev/i }).first();
+    await prevBtn.click({ force: true });
+    await page.waitForTimeout(300);
+
+    // Verify "Current Week" button is gone because we are back at offset 0
+    await expect(currentWeekBtn).toBeHidden();
+  });
+});

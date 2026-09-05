@@ -62,10 +62,11 @@ This reference document outlines all automated end-to-end and regression test sp
 
 ---
 
-### 4. `tests/04_meals_groceries.spec.ts` (Meals & Groceries Integration)
-* `Bug Fix: Items strictly mapped to "Pantry & Dry" render correctly`: Verifies category assignment and rendering in the grocery board.
-* `AI Grocery Optimization`: Verifies consolidation of duplicate ingredients (e.g. 1 onion + 2 onions -> 3 onions) via AI endpoint.
-* `Direct-to-Cookbook Meal Planning Flow`:
+### 4. 	ests/04_meals_groceries.spec.ts (Meals & Groceries Integration)
+* Bug Fix: Items strictly mapped to "Pantry & Dry" render correctly: Verifies category assignment and rendering in the grocery board.
+* AI Grocery Optimization: Verifies consolidation of duplicate ingredients (e.g. 1 onion + 2 onions -> 3 onions) via AI endpoint.
+* Meal Planner: 2x4 Pagination (Next/Prev/Current Week navigation): Verifies forward and backward paginated calendar boundaries for the 7-day meal planner.
+* Direct-to-Cookbook Meal Planning Flow:
   * Clicking "+ Plan Dinner" or "+ Plan Tonight's Dinner" opens Family Cookbook with the banner: `ðŸ“Œ Planning [Day]'s dinner â€” tap a recipe`.
   * Opening a recipe preview and closing it with `âœ•` dismisses only the preview while maintaining planning mode.
   * Saving the recipe commits it to the target day and updates the meal board.
@@ -165,6 +166,7 @@ npx playwright test tests/09_mobile_responsive.spec.ts --project=chromium
 # Run with interactive UI mode
 npx playwright test --ui
 ```
+
 
 
 
