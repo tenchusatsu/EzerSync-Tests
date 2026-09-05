@@ -89,15 +89,21 @@ This reference document outlines all automated end-to-end and regression test sp
 
 ---
 
-### 6. `tests/06_cookbook_recipes.spec.ts` (Cookbook & AI Recipe Management)
-* `Cookbook: Browse, Search, and Create Custom Recipe`:
+### 6. 	ests/06_cookbook_recipes.spec.ts (Cookbook & AI Recipe Management)
+* Cookbook: Browse, Search, and Create Custom Recipe:
   * Navigates to Cookbook tab and tests text filtering.
   * Creates custom recipe with ingredients and instructions.
-* `Cookbook: Edit Existing Recipe & Share Code Generation`:
+* Cookbook: Edit Existing Recipe & Share Code Generation:
   * Updates recipe name/ingredients and generates 6-character recipe import code.
-* `Cookbook: Delete Recipe with Custom Modal Confirmation`:
+* Cookbook: Delete Recipe with Custom Modal Confirmation:
   * Verifies custom modal prompt appears and confirms deletion.
-* `AI Fridge Assistant: "What's in my fridge?" suggests dishes from ingredients`:
+* Cookbook: Image Upload and Social Links parsing:
+  * Uploads an image using WebP compression and verifies preview rendering.
+  * Inputs TikTok/YouTube URLs and asserts platform-specific badges (e.g. `▶ YouTube`) render automatically.
+* Cookbook: Recipe Share Validation (Rate/Size limits):
+  * Creates an oversized recipe title (> 200 chars).
+  * Validates the server intercepts a 400 Bad Request and displays the security alert to the user.
+* AI Fridge Assistant: "What's in my fridge?" suggests dishes from ingredients:
   * Passes fridge ingredients into the assistant and mocks `api.php?action=ai_fridge_suggest`.
   * Verifies generated recipe suggestion cards render with prep/cook times.
   * Opens recipe inspector and verifies ingredient details are populated.
@@ -159,5 +165,6 @@ npx playwright test tests/09_mobile_responsive.spec.ts --project=chromium
 # Run with interactive UI mode
 npx playwright test --ui
 ```
+
 
 
