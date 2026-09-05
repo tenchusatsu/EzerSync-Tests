@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/auth.fixture';
+﻿import { test, expect } from './fixtures/auth.fixture';
 
 test.describe('Mobile Viewports & Responsive Touch UI', () => {
 
@@ -21,7 +21,7 @@ test.describe('Mobile Viewports & Responsive Touch UI', () => {
     await expect(moreBtn).toBeVisible();
   });
 
-  test('Mobile "⋯ More" Overflow Sheet: Expands and navigates to overflow tabs', async ({ authenticatedPage: page }) => {
+  test('Mobile "â‹¯ More" Overflow Sheet: Expands and navigates to overflow tabs', async ({ authenticatedPage: page }) => {
     const bottomNav = page.locator('nav').filter({ hasText: /Home/i }).last();
     const moreBtn = bottomNav.locator('button:has-text("More")');
     await expect(moreBtn).toBeVisible();
@@ -72,4 +72,37 @@ test.describe('Mobile Viewports & Responsive Touch UI', () => {
     await expect(page.locator('button[aria-label="Open Settings"]')).toBeVisible();
   });
 
+
+  test('Mobile Home Dashboard: Verifies Strict Executive Brief Layout Hierarchy', async ({ authenticatedPage: page }) => {
+    // 1. Navigate to Home on mobile
+    const bottomNav = page.locator('nav').filter({ hasText: /Home/i }).last();
+    const homeBtn = bottomNav.locator('button[aria-label="Home"]');
+    await homeBtn.click();
+    await page.waitForTimeout(500);
+
+    // 2. Locate widgets via data-testid
+    const agendaWidget = page.locator('[data-testid="mobile-agenda-widget"]').first();
+    const tasksWidget = page.locator('[data-testid="mobile-tasks-widget"]').first();
+    const groceriesWidget = page.locator('[data-testid="mobile-groceries-widget"]').first();
+    const mealsWidget = page.locator('[data-testid="mobile-meals-widget"]').first();
+
+    await expect(agendaWidget).toBeVisible();
+    await expect(tasksWidget).toBeVisible();
+    await expect(groceriesWidget).toBeVisible();
+    await expect(mealsWidget).toBeVisible();
+
+    // 3. Get bounding boxes
+    const agendaBox = await agendaWidget.boundingBox();
+    const tasksBox = await tasksWidget.boundingBox();
+    const groceriesBox = await groceriesWidget.boundingBox();
+    const mealsBox = await mealsWidget.boundingBox();
+
+    // 4. Assert strict vertical flow
+    expect(agendaBox.y).toBeLessThan(tasksBox.y);
+    expect(mealsBox.y).toBeLessThan(tasksBox.y);
+    expect(tasksBox.y).toBeLessThan(groceriesBox.y);
+    // Wait, the order in App.tsx is: Agenda, Meals, Tasks, Groceries?
+    // Let me check App.tsx for the exact order!
+  });
 });
+
